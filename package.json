@@ -4,7 +4,9 @@
   "description": "",
   "main": "src/main.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "build": "vite build"
   },
   "repository": {
     "type": "git",
@@ -23,5 +25,8 @@
   "bugs": {
     "url": "https://github.com/mamlaki/quizient/issues"
   },
-  "homepage": "https://github.com/mamlaki/quizient#readme"
+  "homepage": "https://github.com/mamlaki/quizient#readme",
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
 }
