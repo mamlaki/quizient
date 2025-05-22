@@ -1,0 +1,27 @@
+{
+  "name": "quizient",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mamlaki/quizient.git"
+  },
+  "keywords": [
+    "convertor",
+    "xml",
+    "moodle",
+    "excel",
+    "quiz",
+    "questions"
+  ],
+  "author": "Melek Redwan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mamlaki/quizient/issues"
+  },
+  "homepage": "https://github.com/mamlaki/quizient#readme"
+}
