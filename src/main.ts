@@ -1,15 +1,16 @@
-// imports
+// Imports
+import { XMLBuilder } from 'fast-xml-parser';
 import { read, utils } from 'xlsx';
 
-// DOM declarations
+// DOM Declarations
 const $file = document.querySelector('#file-input') as HTMLInputElement;
 const $log = document.querySelector('#log') as HTMLElement;
 const $btn = document.querySelector('#convert-btn') as HTMLButtonElement;
 
-// XML container
+// Final XML output container
 let xmlString = "";
 
-// row type declaration
+// Row type declaration
 type Row = {
     Type: string;
     Title: string;
@@ -21,30 +22,75 @@ type Row = {
     Correct?: string;
 };
 
+// Create Moodle XML question object from a row 
 function rowToQuestion(row: Row) {
+    // Build answers list
+    const answers = ['A', 'B', 'C', 'D'].flatMap(label => {
+        const text = (row as any)[`Option${label}`];
+        if (!text) {
+            return [];
+        }
+        return [{
+            '@_fraction': row.Correct?.includes(label) ? '100' : '0',
+            text
+        }]
+    });
+    
+    // Return a Moodle XML question object
     return {
-        '@_type:': 'description',
-        name: { text: row.Title || 'Untitled' },
-        questiontext: { '@_format': 'html', text: `<![CDATA${row.Question}]]` }
-    }
+        '@_type': 'multichoice',
+        name: { text: row.Title },
+        questiontext: { '@_format': 'html', text: { '#cdata': row.Question } },
+        answer: answers
+    };
 }
 
+// When a user adds a file
 $file.addEventListener('change', async () => {
-    // grab file
+    // Grab the first file (if multiple files were uploaded and if it exists)
     const file = $file.files?.[0];
     if (!file) return; 
     
-    $log.textContent = `Loading: ${file.name} ...`;
+    $log.textContent = `Loading: ${file.name} ...`; // UI update
     
-    // parse loaded file 
+    // Parse the file
     const buffer = await file.arrayBuffer();
     const wb = read(buffer, {type: 'array'});
     const sheet = wb.Sheets[wb.SheetNames[0]]; // grab the first sheet
-    const rows = utils.sheet_to_json<Record<string, string>>( // converting to JSON
+    const rows = utils.sheet_to_json<Row>( // converting to JSON row objects
         sheet, { raw: false }
     );
 
+    const questions = rows.map(rowToQuestion);  // use rowToQuestions() on each of the converted rows
+
+    // Build XML
+    const builder = new XMLBuilder({ 
+        ignoreAttributes: false, 
+        attributeNamePrefix: '@_', 
+        format: true, 
+        cdataPropName: '#cdata' 
+    });
+    xmlString  = builder.build({ quiz: { question: questions }});
+
     console.table(rows);
     
-    $log.textContent = `Parsed ${rows.length} rows - see console`
+    $log.textContent = `Generated ${questions.length} questions`; // UI update
+    // Show the download button
+    $btn.classList.remove('hidden'); 
+    $btn.classList.add('block');
+
+});
+
+// Download button click functionality
+$btn.addEventListener('click', () => {
+    const blob = new Blob([xmlString], { type: 'text/xml' }); // create blob 
+    const url = URL.createObjectURL(blob); // temp blob url
+
+    // Create hidden link that is auto clicked which downloads the file
+    Object.assign(document.createElement('a'), {
+        href: url,
+        download: 'questions.xml'
+    }).click();
+
+    URL.revokeObjectURL(url); // revokes the temp blob url
 });
