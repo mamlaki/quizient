@@ -9,6 +9,26 @@ const $btn = document.querySelector('#convert-btn') as HTMLButtonElement;
 // XML container
 let xmlString = "";
 
+// row type declaration
+type Row = {
+    Type: string;
+    Title: string;
+    Question: string;
+    OptionA?: string;
+    OptionB?: string;
+    OptionC?: string;
+    OptionD?: string;
+    Correct?: string;
+};
+
+function rowToQuestion(row: Row) {
+    return {
+        '@_type:': 'description',
+        name: { text: row.Title || 'Untitled' },
+        questiontext: { '@_format': 'html', text: `<![CDATA${row.Question}]]` }
+    }
+}
+
 $file.addEventListener('change', async () => {
     // grab file
     const file = $file.files?.[0];
@@ -24,7 +44,7 @@ $file.addEventListener('change', async () => {
         sheet, { raw: false }
     );
 
-    console.log(rows);
+    console.table(rows);
     
     $log.textContent = `Parsed ${rows.length} rows - see console`
 });
