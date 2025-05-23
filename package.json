@@ -28,5 +28,9 @@
   "homepage": "https://github.com/mamlaki/quizient#readme",
   "devDependencies": {
     "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.2.3",
+    "xlsx": "^0.18.5"
   }
 }
