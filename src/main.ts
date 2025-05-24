@@ -32,7 +32,7 @@ function rowToQuestion(row: Row) {
     };
 
     const questionType = row.Type?.toLowerCase(); // what is the question type/does it exist
-    
+
     if (questionType === 'truefalse') {
         // True/false question type
         const isCorrectTrue = row.Correct?.toLowerCase() === 'true';
@@ -57,7 +57,8 @@ function rowToQuestion(row: Row) {
         // Short answer question type
         const useCase = row.UseCase === '1' ? 1 : 0;
 
-        const altKeys = Object.keys(row).filter(key => /^Correct\d+$/.test(key));
+        // Allow several correct answers
+        const altKeys = Object.keys(row).filter(key => /^Correct\d+$/.test(key)); 
 
         const alternativeAnswers = altKeys.map(key => (row as any)[key]?.trim()).filter(val => val);
 
