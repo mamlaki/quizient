@@ -27,7 +27,20 @@
             <span>Drag and drop your file here, or click to select</span>
         </div>
         <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" class="mb-6 mx-auto hidden">
-        <button 
+        <div 
+            id="log"
+            class="
+                bg-gray-100
+                mx-auto mb-4 p-4
+                rounded-md
+                text-sm font-mono
+                w-full max-w-xl max-h-48 
+                overflow-y-auto
+                hidden
+            "
+        >
+    </div>
+    <button 
             id="convert-btn" 
             class="
                 bg-green-600 text-white
@@ -38,14 +51,8 @@
                 hidden
             "
         >
-            Convert/Download XML
+            Download
         </button>
-        <pre 
-            id="log"
-            class="bg-gray-100 p-4 rounded-md"
-        >
-            log
-        </pre>
     </main>
     <script type="module" src="src/main.ts"></script>
 </body>

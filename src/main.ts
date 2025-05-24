@@ -24,7 +24,20 @@ type Row = {
     UseCase?: string;
 };
 
-// Create Moodle XML question object from a row 
+// -------- Log helper functions --------
+const showLog = () => $log.classList.remove('hidden');
+
+const clearLog = () => $log.innerHTML = '';
+
+const appendLog = (message: string) => {
+    showLog();
+    const entry = document.createElement('p');
+    entry.textContent = message;
+    $log.appendChild(entry);
+}
+
+
+// -------- Create Moodle XML question object from a row --------
 function rowToQuestion(row: Row) {
     // Shared between multiplechoice and truefalse questions
     const sharedElements = {
@@ -98,13 +111,15 @@ function rowToQuestion(row: Row) {
     }
 }
 
-// When a user adds a file
+
+// -------- When a user adds a file --------
 $file.addEventListener('change', async () => {
     // Grab the first file (if multiple files were uploaded and if it exists)
+    clearLog();
     const file = $file.files?.[0];
     if (!file) return; 
     
-    $log.textContent = `Loading: ${file.name} ...`; // UI update
+    appendLog(`Loading: ${file.name} ...`); // UI update
     
     // UI updates based on file type
     const fileTypes: Record<string, string> = {
@@ -118,14 +133,14 @@ $file.addEventListener('change', async () => {
 
     if (fileTypeDesc) {
         console.log(`Processing ${fileTypeDesc} file: ${file.name}...`);
-        $log.textContent = `Processing ${fileTypeDesc} file: ${file.name}...`;
+        appendLog(`Processing ${fileTypeDesc} file: ${file.name}...`);
     } else if (file.type === '' || file.type === 'application/octet-stream') {
         fileTypeDesc = 'Unknown';
         console.log(`Processing file (unknown, type): ${file.name}...`);
-        $log.textContent = `Processing file (unknown, type): ${file.name}...`;
+        appendLog(`Processing file (unknown, type): ${file.name}...`);
     } else {
         console.log(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
-        $log.textContent = `Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`;
+        appendLog(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
         $btn.classList.add('hidden');
         $btn.classList.remove('block');
         return;
@@ -160,7 +175,7 @@ $file.addEventListener('change', async () => {
 
         // Check for no data
         if (totalRowsProcessed === 0) {
-            $log.textContent = `No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`;
+            appendLog(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`);
             $btn.classList.add('hidden');
             $btn.classList.remove('block');
             return;
@@ -168,7 +183,7 @@ $file.addEventListener('change', async () => {
 
         // Check for valid questions
         if (allQuestions.length === 0 && totalRowsProcessed > 0) {
-            $log.textContent = `No valid questions could be generated from ${file.name}.`;
+            appendLog(`No valid questions could be generated from ${file.name}.`);
             $btn.classList.add('hidden');
             $btn.classList.remove('block');
             return;
@@ -183,11 +198,11 @@ $file.addEventListener('change', async () => {
         });
         xmlString  = builder.build({ quiz: { question: allQuestions }});
         
-        $log.textContent = `Generated ${allQuestions.length} questions`; // UI update
+        appendLog(`Generated ${allQuestions.length} questions`); // UI update
 
         // Note if any rows were skipped/invalid
         if (allQuestions.length < totalRowsProcessed) {
-            $log.textContent += ` (${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`;
+            appendLog(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`);
         }
 
         // Show the download button
@@ -195,13 +210,14 @@ $file.addEventListener('change', async () => {
         $btn.classList.add('block');
     } catch(error) {
         console.error(`Error processing ${file.name}`, error);
-        $log.textContent = `Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`;
+        appendLog(`Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`);
         $btn.classList.add('hidden');
         $btn.classList.remove('block');
     }
 });
 
-// Drop zone functionality
+
+// -------- Drop zone functionality --------
 if ($dropZone && $file) {
     // Highlight style when a file is hovering above
     $dropZone.addEventListener('dragover', (e) => {
@@ -232,7 +248,8 @@ if ($dropZone && $file) {
     })
 }
 
-// Download button click functionality
+
+// -------- Download button click functionality --------
 $btn.addEventListener('click', () => {
     const blob = new Blob([xmlString], { type: 'text/xml' }); // create blob 
     const url = URL.createObjectURL(blob); // temp blob url
