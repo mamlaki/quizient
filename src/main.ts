@@ -1,6 +1,9 @@
-// Imports
+// -------- Imports --------
+// File processing
 import { XMLBuilder } from 'fast-xml-parser';
 import { read, utils } from 'xlsx';
+// UI/UX
+import { createElement, CircleCheck, LoaderCircle } from 'lucide';
 
 // DOM Declarations
 const $file = document.querySelector('#file-input') as HTMLInputElement;
@@ -24,6 +27,17 @@ type Row = {
     UseCase?: string;
 };
 
+// -------- Download button helper functions --------
+const showDownloadBtn = () => {
+    $btn.classList.remove('opacity-0');
+    $btn.classList.add('opacity-100');
+}
+
+const hideDownloadBtn = () => {
+    $btn.classList.remove('opacity-100');
+    $btn.classList.add('opacity-0');
+}
+
 // -------- Log helper functions --------
 const showLog = () => $log.classList.remove('hidden');
 
@@ -31,9 +45,24 @@ const clearLog = () => $log.innerHTML = '';
 
 const appendLog = (message: string) => {
     showLog();
-    const entry = document.createElement('p');
-    entry.textContent = message;
+    const entry = document.createElement('div');
+    entry.className = 'log-entry flex flex-row-reverse justify-end items-center gap-2 opacity-0 transition-opacity duration-500';
+    setTimeout(() => {
+        entry.classList.add('opacity-100');
+    }, 10);
+    // Loading
+    const loadingIcon = createElement(LoaderCircle, { size: 18, class: 'log-loading-icon' });
+    loadingIcon.classList.add('animate-spin', 'text-sky-400');
+
+    entry.appendChild(loadingIcon);
+
+    // Log text
+    const text = document.createElement('span');
+    text.textContent = message;
+    entry.appendChild(text);
+
     $log.appendChild(entry);
+    return entry;
 }
 // Smoother log output (especially for smaller files)
 let logQueue: { message: string; callback?: () => void }[] = [];
@@ -44,8 +73,15 @@ function processLogQueue() {
 
     isProcessingLog = true;
     const { message, callback } = logQueue.shift()!;
-    appendLog(message);
+    const entry = appendLog(message);
+
     setTimeout(() => {
+        const loadingIcon = entry.querySelector('.log-loading-icon');
+        if (loadingIcon) {
+            const check = createElement(CircleCheck, { size: 18, class: 'log-check' });
+            check.classList.add('text-green-600');
+            loadingIcon.replaceWith(check);
+        }
         isProcessingLog = false;
         if (callback) callback();
         processLogQueue();
@@ -134,14 +170,14 @@ function rowToQuestion(row: Row) {
 
 // -------- When a user adds a file --------
 $file.addEventListener('change', async () => {
-    // Grab the first file (if multiple files were uploaded and if it exists)
+    // Reset UI elements
     clearLog();
     logQueue = [];
     isProcessingLog = false;
-    $btn.classList.add('hidden');
-    $btn.classList.remove('block');
 
+    hideDownloadBtn();
 
+    // Grab the first file (if multiple files were uploaded and if it exists)
     const file = $file.files?.[0];
     if (!file) return; 
     
@@ -167,8 +203,7 @@ $file.addEventListener('change', async () => {
     } else {
         console.log(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
         queueLog(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
-        $btn.classList.add('hidden');
-        $btn.classList.remove('block');
+        hideDownloadBtn();
         return;
     }
 
@@ -202,16 +237,14 @@ $file.addEventListener('change', async () => {
         // Check for no data
         if (totalRowsProcessed === 0) {
             queueLog(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`);
-            $btn.classList.add('hidden');
-            $btn.classList.remove('block');
+            hideDownloadBtn();
             return;
         }
 
         // Check for valid questions
         if (allQuestions.length === 0 && totalRowsProcessed > 0) {
             queueLog(`No valid questions could be generated from ${file.name}.`);
-            $btn.classList.add('hidden');
-            $btn.classList.remove('block');
+            hideDownloadBtn();
             return;
         }
 
@@ -229,9 +262,8 @@ $file.addEventListener('change', async () => {
             if (allQuestions.length < totalRowsProcessed) {
                 queueLog(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`);
             }
-            // Show the download button
-            $btn.classList.remove('hidden'); 
-            $btn.classList.add('block');            
+            // Show the download button 
+            showDownloadBtn();
         }); // UI update    
 
     } catch(error) {
