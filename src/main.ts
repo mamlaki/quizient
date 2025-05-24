@@ -134,25 +134,61 @@ $file.addEventListener('change', async () => {
     try {
         const buffer = await file.arrayBuffer();
         const wb = read(buffer, {type: 'array'});
-        const sheet = wb.Sheets[wb.SheetNames[0]]; // grab the first sheet
-        const rows = utils.sheet_to_json<Row>( // converting to JSON row objects
-            sheet, { raw: false }
-        );
-    
-        const questions = rows.map(rowToQuestion);  // use rowToQuestions() on each of the converted rows
-    
-        // Build XML
+
+        let allQuestions : any[] = [];
+        let totalRowsProcessed = 0;
+
+        // Loop through each sheet in file
+        for (const sheetName of wb.SheetNames) {
+            console.log(`Processing sheet: ${sheetName}`);
+
+            const sheet = wb.Sheets[sheetName]; // grab sheet
+            const rows = utils.sheet_to_json<Row>( // convert current sheet to JSON row objects
+                sheet, { raw: false }
+            );
+            totalRowsProcessed += rows.length;
+
+            const questionsFromSheet = rows.map(rowToQuestion).filter(question => question !== null);
+
+            allQuestions = allQuestions.concat(questionsFromSheet);
+
+            if (rows.length > 0) {
+                console.log(`Found ${rows.length} rows in sheet "${sheetName}", generated ${questionsFromSheet.length} questions.`);
+            }
+        }
+
+        // Check for no data
+        if (totalRowsProcessed === 0) {
+            $log.textContent = `No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`;
+            $btn.classList.add('hidden');
+            $btn.classList.remove('block');
+            return;
+        }
+
+        // Check for valid questions
+        if (allQuestions.length === 0 && totalRowsProcessed > 0) {
+            $log.textContent = `No valid questions could be generated from ${file.name}.`;
+            $btn.classList.add('hidden');
+            $btn.classList.remove('block');
+            return;
+        }
+
+        // Build XML 
         const builder = new XMLBuilder({ 
             ignoreAttributes: false, 
             attributeNamePrefix: '@_', 
             format: true, 
             cdataPropName: '#cdata' 
         });
-        xmlString  = builder.build({ quiz: { question: questions }});
-    
-        console.table(rows);
+        xmlString  = builder.build({ quiz: { question: allQuestions }});
         
-        $log.textContent = `Generated ${questions.length} questions`; // UI update
+        $log.textContent = `Generated ${allQuestions.length} questions`; // UI update
+
+        // Note if any rows were skipped/invalid
+        if (allQuestions.length < totalRowsProcessed) {
+            $log.textContent += ` (${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`;
+        }
+
         // Show the download button
         $btn.classList.remove('hidden'); 
         $btn.classList.add('block');
