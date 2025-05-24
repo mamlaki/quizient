@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/main.ts",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite",
@@ -30,7 +31,9 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.7",
     "fast-xml-parser": "^5.2.3",
+    "tailwindcss": "^4.1.7",
     "xlsx": "^0.18.5"
   }
 }
