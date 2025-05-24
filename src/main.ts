@@ -53,6 +53,31 @@ $file.addEventListener('change', async () => {
     
     $log.textContent = `Loading: ${file.name} ...`; // UI update
     
+    // UI updates based on file type
+    const fileTypes: Record<string, string> = {
+        'text/csv': 'CSV',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+        'application/vnd.ms-excel': 'XLS',
+        'application/vnd.oasis.opendocument.spreadsheet': 'ODS'
+    };
+
+    let fileTypeDesc = fileTypes[file.type];
+
+    if (fileTypeDesc) {
+        console.log(`Processing ${fileTypeDesc} file: ${file.name}...`);
+        $log.textContent = `Processing ${fileTypeDesc} file: ${file.name}...`;
+    } else if (file.type === '' || file.type === 'application/octet-stream') {
+        fileTypeDesc = 'Unknown';
+        console.log(`Processing file (unknown, type): ${file.name}...`);
+        $log.textContent = `Processing file (unknown, type): ${file.name}...`;
+    } else {
+        console.log(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
+        $log.textContent = `Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`;
+        $btn.classList.add('hidden');
+        $btn.classList.remove('block');
+        return;
+    }
+
     // Parse the file
     const buffer = await file.arrayBuffer();
     const wb = read(buffer, {type: 'array'});
