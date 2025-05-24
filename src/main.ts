@@ -35,7 +35,27 @@ const appendLog = (message: string) => {
     entry.textContent = message;
     $log.appendChild(entry);
 }
+// Smoother log output (especially for smaller files)
+let logQueue: { message: string; callback?: () => void }[] = [];
+let isProcessingLog = false
 
+function processLogQueue() {
+    if (isProcessingLog || logQueue.length === 0) return;
+
+    isProcessingLog = true;
+    const { message, callback } = logQueue.shift()!;
+    appendLog(message);
+    setTimeout(() => {
+        isProcessingLog = false;
+        if (callback) callback();
+        processLogQueue();
+    }, 400);
+}
+
+const queueLog = (message: string, callback?: () => void) => {
+    logQueue.push({ message, callback });
+    processLogQueue();
+}
 
 // -------- Create Moodle XML question object from a row --------
 function rowToQuestion(row: Row) {
@@ -116,10 +136,16 @@ function rowToQuestion(row: Row) {
 $file.addEventListener('change', async () => {
     // Grab the first file (if multiple files were uploaded and if it exists)
     clearLog();
+    logQueue = [];
+    isProcessingLog = false;
+    $btn.classList.add('hidden');
+    $btn.classList.remove('block');
+
+
     const file = $file.files?.[0];
     if (!file) return; 
     
-    appendLog(`Loading: ${file.name} ...`); // UI update
+    queueLog(`Loading: ${file.name} ...`); // UI update
     
     // UI updates based on file type
     const fileTypes: Record<string, string> = {
@@ -133,14 +159,14 @@ $file.addEventListener('change', async () => {
 
     if (fileTypeDesc) {
         console.log(`Processing ${fileTypeDesc} file: ${file.name}...`);
-        appendLog(`Processing ${fileTypeDesc} file: ${file.name}...`);
+        queueLog(`Processing ${fileTypeDesc} file: ${file.name}...`);
     } else if (file.type === '' || file.type === 'application/octet-stream') {
         fileTypeDesc = 'Unknown';
         console.log(`Processing file (unknown, type): ${file.name}...`);
-        appendLog(`Processing file (unknown, type): ${file.name}...`);
+        queueLog(`Processing file (unknown, type): ${file.name}...`);
     } else {
         console.log(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
-        appendLog(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
+        queueLog(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
         $btn.classList.add('hidden');
         $btn.classList.remove('block');
         return;
@@ -175,7 +201,7 @@ $file.addEventListener('change', async () => {
 
         // Check for no data
         if (totalRowsProcessed === 0) {
-            appendLog(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`);
+            queueLog(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`);
             $btn.classList.add('hidden');
             $btn.classList.remove('block');
             return;
@@ -183,7 +209,7 @@ $file.addEventListener('change', async () => {
 
         // Check for valid questions
         if (allQuestions.length === 0 && totalRowsProcessed > 0) {
-            appendLog(`No valid questions could be generated from ${file.name}.`);
+            queueLog(`No valid questions could be generated from ${file.name}.`);
             $btn.classList.add('hidden');
             $btn.classList.remove('block');
             return;
@@ -198,21 +224,19 @@ $file.addEventListener('change', async () => {
         });
         xmlString  = builder.build({ quiz: { question: allQuestions }});
         
-        appendLog(`Generated ${allQuestions.length} questions`); // UI update
+        queueLog(`Generated ${allQuestions.length} questions`, () => {
+            // Note if any rows were skipped/invalid
+            if (allQuestions.length < totalRowsProcessed) {
+                queueLog(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`);
+            }
+            // Show the download button
+            $btn.classList.remove('hidden'); 
+            $btn.classList.add('block');            
+        }); // UI update    
 
-        // Note if any rows were skipped/invalid
-        if (allQuestions.length < totalRowsProcessed) {
-            appendLog(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`);
-        }
-
-        // Show the download button
-        $btn.classList.remove('hidden'); 
-        $btn.classList.add('block');
     } catch(error) {
         console.error(`Error processing ${file.name}`, error);
-        appendLog(`Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`);
-        $btn.classList.add('hidden');
-        $btn.classList.remove('block');
+        queueLog(`Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`);
     }
 });
 
