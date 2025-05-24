@@ -4,16 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quizient</title>
-  <script type="module" crossorigin src="/quizient/assets/index-BkUBzkS-.js"></script>
-  <link rel="stylesheet" crossorigin href="/quizient/assets/index-DBHZhK3g.css">
+  <script type="module" crossorigin src="/quizient/assets/index-CnvXy_sm.js"></script>
+  <link rel="stylesheet" crossorigin href="/quizient/assets/index-C7WPzdny.css">
 </head>
 <body class="p-8">
-    <header class="mb-10 text-center">
+    <header class="mb-4 text-center">
         <h1 class="text-2xl font-bold">Quizient</h1>
         <p class="text-gray-600 font-light mt-0.5">For Moodle</p>
     </header>
     <main>
-        <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" class="mb-6 mx-auto block">
+        <div 
+            id="drop-zone"
+            class="
+                flex items-center justify-center
+                mb-4 mx-auto
+                border-2 border-dashed border-sky-300 rounded-lg
+                w-full h-32 max-w-lg
+                text-gray-400
+                cursor-pointer
+                transition hover:border-green-600
+            "    
+        >
+            <span>Drag and drop your file here, or click to select</span>
+        </div>
+        <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" class="mb-6 mx-auto hidden">
         <button 
             id="convert-btn" 
             class="
