@@ -6,6 +6,7 @@ import { read, utils } from 'xlsx';
 const $file = document.querySelector('#file-input') as HTMLInputElement;
 const $log = document.querySelector('#log') as HTMLElement;
 const $btn = document.querySelector('#convert-btn') as HTMLButtonElement;
+const $dropZone = document.querySelector('#drop-zone') as HTMLElement;
 
 // Final XML output container
 let xmlString = "";
@@ -199,6 +200,37 @@ $file.addEventListener('change', async () => {
         $btn.classList.remove('block');
     }
 });
+
+// Drop zone functionality
+if ($dropZone && $file) {
+    // Highlight style when a file is hovering above
+    $dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        $dropZone.classList.add('bg-sky-50');
+    });
+
+    // Remove hovering above styles
+    $dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        $dropZone.classList.remove('bg-sky-50');
+    }); 
+
+    // Actual functionality
+    $dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        $dropZone.classList.remove('bg-sky-50');
+        const files = (e.dataTransfer?.files || []);
+        if (files.length > 0) {
+            // @ts-expect-error
+            $file.files = files;
+            $file.dispatchEvent(new Event('change')); // triggers the change event listener above (aka the file processing)
+        }
+    });
+
+    $dropZone.addEventListener('click', () => {
+        $file.click();
+    })
+}
 
 // Download button click functionality
 $btn.addEventListener('click', () => {
