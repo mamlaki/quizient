@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quizient</title>
-  <script type="module" crossorigin src="/quizient/assets/index-CnvXy_sm.js"></script>
-  <link rel="stylesheet" crossorigin href="/quizient/assets/index-C7WPzdny.css">
+  <script type="module" crossorigin src="/quizient/assets/index-BypsJMIJ.js"></script>
+  <link rel="stylesheet" crossorigin href="/quizient/assets/index-CUtc-8_m.css">
 </head>
 <body class="p-8">
     <header class="mb-4 text-center">
@@ -28,7 +28,20 @@
             <span>Drag and drop your file here, or click to select</span>
         </div>
         <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" class="mb-6 mx-auto hidden">
-        <button 
+        <div 
+            id="log"
+            class="
+                bg-gray-100
+                mx-auto mb-4 p-4
+                rounded-md
+                text-sm font-mono
+                w-full max-w-xl max-h-48 
+                overflow-y-auto
+                hidden
+            "
+        >
+    </div>
+    <button 
             id="convert-btn" 
             class="
                 bg-green-600 text-white
@@ -39,14 +52,8 @@
                 hidden
             "
         >
-            Convert/Download XML
+            Download
         </button>
-        <pre 
-            id="log"
-            class="bg-gray-100 p-4 rounded-md"
-        >
-            log
-        </pre>
     </main>
 </body>
 </html>
