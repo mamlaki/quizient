@@ -79,31 +79,37 @@ $file.addEventListener('change', async () => {
     }
 
     // Parse the file
-    const buffer = await file.arrayBuffer();
-    const wb = read(buffer, {type: 'array'});
-    const sheet = wb.Sheets[wb.SheetNames[0]]; // grab the first sheet
-    const rows = utils.sheet_to_json<Row>( // converting to JSON row objects
-        sheet, { raw: false }
-    );
-
-    const questions = rows.map(rowToQuestion);  // use rowToQuestions() on each of the converted rows
-
-    // Build XML
-    const builder = new XMLBuilder({ 
-        ignoreAttributes: false, 
-        attributeNamePrefix: '@_', 
-        format: true, 
-        cdataPropName: '#cdata' 
-    });
-    xmlString  = builder.build({ quiz: { question: questions }});
-
-    console.table(rows);
+    try{
+        const buffer = await file.arrayBuffer();
+        const wb = read(buffer, {type: 'array'});
+        const sheet = wb.Sheets[wb.SheetNames[0]]; // grab the first sheet
+        const rows = utils.sheet_to_json<Row>( // converting to JSON row objects
+            sheet, { raw: false }
+        );
     
-    $log.textContent = `Generated ${questions.length} questions`; // UI update
-    // Show the download button
-    $btn.classList.remove('hidden'); 
-    $btn.classList.add('block');
-
+        const questions = rows.map(rowToQuestion);  // use rowToQuestions() on each of the converted rows
+    
+        // Build XML
+        const builder = new XMLBuilder({ 
+            ignoreAttributes: false, 
+            attributeNamePrefix: '@_', 
+            format: true, 
+            cdataPropName: '#cdata' 
+        });
+        xmlString  = builder.build({ quiz: { question: questions }});
+    
+        console.table(rows);
+        
+        $log.textContent = `Generated ${questions.length} questions`; // UI update
+        // Show the download button
+        $btn.classList.remove('hidden'); 
+        $btn.classList.add('block');
+    } catch(error) {
+        console.error(`Error processing ${file.name}`, error);
+        $log.textContent = `Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`;
+        $btn.classList.add('hidden');
+        $btn.classList.remove('block');
+    }
 });
 
 // Download button click functionality
