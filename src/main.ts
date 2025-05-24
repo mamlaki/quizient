@@ -24,25 +24,54 @@ type Row = {
 
 // Create Moodle XML question object from a row 
 function rowToQuestion(row: Row) {
-    // Build answers list
-    const answers = ['A', 'B', 'C', 'D'].flatMap(label => {
-        const text = (row as any)[`Option${label}`];
-        if (!text) {
-            return [];
-        }
-        return [{
-            '@_fraction': row.Correct?.includes(label) ? '100' : '0',
-            text
-        }]
-    });
-    
-    // Return a Moodle XML question object
-    return {
-        '@_type': 'multichoice',
+    // Shared between multiplechoice and truefalse questions
+    const sharedElements = {
         name: { text: row.Title },
         questiontext: { '@_format': 'html', text: { '#cdata': row.Question } },
-        answer: answers
     };
+
+    if (row.Type && row.Type.toLowerCase() === 'truefalse') {
+        const isCorrectTrue = row.Correct?.toLowerCase() === 'true';
+
+        return {
+            ...sharedElements,
+            '@_type': 'truefalse',
+            answer: [
+                {
+                    '@_fraction': isCorrectTrue? '100' : '0',
+                    '@_format': 'moodle_auto_format',
+                    text: 'true',
+                    feedback: { '@_format': 'html', text: '' }
+                },
+                {
+                    '@_fraction': !isCorrectTrue? '100' : '0',
+                    '@_format': 'moodle_auto_format',
+                    text: 'false',
+                    feedback: { '@_format': 'html', text: '' }
+                }
+            ]
+        }
+    } else {
+        // Default to multiplechoice for now if truefalse isn't being used
+        // Build answers list
+        const answers = ['A', 'B', 'C', 'D'].flatMap(label => {
+            const text = (row as any)[`Option${label}`];
+            if (!text) {
+                return [];
+            }
+            return [{
+                '@_fraction': row.Correct?.toUpperCase().includes(label) ? '100' : '0',
+                text
+            }]
+        });
+        
+        // Return a Moodle XML question object
+        return {
+            ...sharedElements,
+            '@_type': 'multichoice',
+            answer: answers
+        };
+    }
 }
 
 // When a user adds a file
@@ -79,7 +108,7 @@ $file.addEventListener('change', async () => {
     }
 
     // Parse the file
-    try{
+    try {
         const buffer = await file.arrayBuffer();
         const wb = read(buffer, {type: 'array'});
         const sheet = wb.Sheets[wb.SheetNames[0]]; // grab the first sheet
