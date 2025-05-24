@@ -20,6 +20,7 @@ type Row = {
     OptionC?: string;
     OptionD?: string;
     Correct?: string;
+    UseCase?: string;
 };
 
 // Create Moodle XML question object from a row 
@@ -30,7 +31,10 @@ function rowToQuestion(row: Row) {
         questiontext: { '@_format': 'html', text: { '#cdata': row.Question } },
     };
 
-    if (row.Type && row.Type.toLowerCase() === 'truefalse') {
+    const questionType = row.Type?.toLowerCase(); // what is the question type/does it exist
+    
+    if (questionType === 'truefalse') {
+        // True/false question type
         const isCorrectTrue = row.Correct?.toLowerCase() === 'true';
 
         return {
@@ -40,16 +44,34 @@ function rowToQuestion(row: Row) {
                 {
                     '@_fraction': isCorrectTrue? '100' : '0',
                     '@_format': 'moodle_auto_format',
-                    text: 'true',
-                    feedback: { '@_format': 'html', text: '' }
+                    text: 'true'
                 },
                 {
                     '@_fraction': !isCorrectTrue? '100' : '0',
                     '@_format': 'moodle_auto_format',
-                    text: 'false',
-                    feedback: { '@_format': 'html', text: '' }
+                    text: 'false'
                 }
             ]
+        }
+    } else if (questionType === 'shortanswer') {
+        // Short answer question type
+        const useCase = row.UseCase === '1' ? 1 : 0;
+
+        const altKeys = Object.keys(row).filter(key => /^Correct\d+$/.test(key));
+
+        const alternativeAnswers = altKeys.map(key => (row as any)[key]?.trim()).filter(val => val);
+
+        const answers = alternativeAnswers.map(answer => ({
+            '@_fraction': '100',
+            '@_format': 'moodle_auto_format',
+            text: answer
+        }));
+
+        return {
+            ...sharedElements,
+            '@_type': 'shortanswer',
+            usecase: useCase,
+            answer: answers
         }
     } else {
         // Default to multiplechoice for now if truefalse isn't being used
