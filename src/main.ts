@@ -52,7 +52,7 @@ const clearLog = () => $log.innerHTML = '';
 const appendLog = (message: string) => {
     showLog();
     const entry = document.createElement('div');
-    entry.className = 'log-entry flex flex-row-reverse justify-end items-center gap-2 opacity-0 transition-opacity duration-500';
+    entry.className = 'log-entry flex flex-row-reverse justify-end items-center gap-2 opacity-0 transition-opacity duration-500 mb-2';
     setTimeout(() => {
         entry.classList.add('opacity-100');
     }, 10);
