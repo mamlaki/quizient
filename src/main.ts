@@ -29,13 +29,19 @@ type Row = {
 
 // -------- Download button helper functions --------
 const showDownloadBtn = () => {
-    $btn.classList.remove('opacity-0');
-    $btn.classList.add('opacity-100');
+    $btn.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        $btn.classList.remove('opacity-0');
+        $btn.classList.add('opacity-100');
+    });
 }
 
 const hideDownloadBtn = () => {
     $btn.classList.remove('opacity-100');
     $btn.classList.add('opacity-0');
+    setTimeout(() => {
+        $btn.classList.add('hidden');
+    }, 300);
 }
 
 // -------- Log helper functions --------
