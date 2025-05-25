@@ -3,7 +3,7 @@
 import { XMLBuilder } from 'fast-xml-parser';
 import { read, utils } from 'xlsx';
 // UI/UX
-import { createElement, CircleCheck, LoaderCircle } from 'lucide';
+import { createElement, CircleCheck, CircleX, LoaderCircle } from 'lucide';
 
 // DOM Declarations
 const $file = document.querySelector('#file-input') as HTMLInputElement;
@@ -65,22 +65,30 @@ const appendLog = (message: string) => {
     return entry;
 }
 // Smoother log output (especially for smaller files)
-let logQueue: { message: string; callback?: () => void }[] = [];
+let logQueue: { message: string; callback?: () => void; logType?: 'info' | 'error' }[] = [];
 let isProcessingLog = false
 
 function processLogQueue() {
     if (isProcessingLog || logQueue.length === 0) return;
 
     isProcessingLog = true;
-    const { message, callback } = logQueue.shift()!;
+    const { message, callback, logType } = logQueue.shift()!;
     const entry = appendLog(message);
 
     setTimeout(() => {
         const loadingIcon = entry.querySelector('.log-loading-icon');
         if (loadingIcon) {
-            const check = createElement(CircleCheck, { size: 18, class: 'log-check' });
-            check.classList.add('text-green-600');
-            loadingIcon.replaceWith(check);
+            if (logType === 'error') {
+                const errorIcon = createElement(CircleX, { size: 18, class: 'log-icon-updated' })
+                errorIcon.classList.add('text-rose-600');
+                loadingIcon.replaceWith(errorIcon);
+                console.log('error');
+            } else {
+                const check = createElement(CircleCheck, { size: 18, class: 'log-icon-updated' });
+                check.classList.add('text-green-600');
+                loadingIcon.replaceWith(check);
+                console.log('check');
+            }
         }
         isProcessingLog = false;
         if (callback) callback();
@@ -88,8 +96,8 @@ function processLogQueue() {
     }, 400);
 }
 
-const queueLog = (message: string, callback?: () => void) => {
-    logQueue.push({ message, callback });
+const queueLog = (message: string, callback?: () => void, logType: 'info' | 'error' = 'info') => {
+    logQueue.push({ message, callback, logType });
     processLogQueue();
 }
 
@@ -202,7 +210,7 @@ $file.addEventListener('change', async () => {
         queueLog(`Processing file (unknown, type): ${file.name}...`);
     } else {
         console.log(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
-        queueLog(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
+        queueLog(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`, undefined, 'error');
         hideDownloadBtn();
         return;
     }
@@ -236,14 +244,14 @@ $file.addEventListener('change', async () => {
 
         // Check for no data
         if (totalRowsProcessed === 0) {
-            queueLog(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`);
+            queueLog(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`, undefined, 'error');
             hideDownloadBtn();
             return;
         }
 
         // Check for valid questions
         if (allQuestions.length === 0 && totalRowsProcessed > 0) {
-            queueLog(`No valid questions could be generated from ${file.name}.`);
+            queueLog(`No valid questions could be generated from ${file.name}.`, undefined, 'error');
             hideDownloadBtn();
             return;
         }
