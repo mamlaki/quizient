@@ -1,1 +1,11 @@
 @import 'tailwindcss';
+
+@keyframes breathing-border {
+    0%, 100% {
+        border-color: var(--color-gray-300);
+    }
+    
+    50% {
+        border-color: var(--color-sky-400);
+    }
+}
