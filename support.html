@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quizient</title>
+  <link rel="stylesheet" crossorigin href="/quizient/assets/styles-CgD9mLVw.css">
+</head>
+<body class="p-8">
+    <header class="mb-12 text-center">
+        <nav class="flex items-center justify-between w-full max-w-lg mx-auto">
+            <div id="logo">
+                <a href="./" class="hover:text-sky-600 transition-colors">
+                    <h1 class="text-2xl font-bold">Quizient</h1>
+                </a>
+            </div>
+            <ul id="nav-items" class="flex space-x-4">
+                <li><a href="about.html" class="text-gray-700 hover:text-sky-600 transition-colors">About</a></li>
+                <li><a href="support.html" class="text-sky-600">Help</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="max-w-xl mx-auto">
+        <h2 class="text-3xl text-gray-800 mb-8">Need Help?</h2>
+        <!-- Support -->
+        <section class="mb-8">
+            <h3 class="text-xl font-semibold mb-4">Getting Started</h3>
+            <ol class="list-decimal pl-4 space-y-4">
+                <li>
+                    Use the 
+                    <a 
+                        class="
+                            text-emerald-600 font-medium underline underline-offset-2 
+                            hover:text-emerald-700 hover:bg-emerald-50 rounded 
+                            px-1 
+                            transition-colors
+                        "
+                        href="#"
+                    >
+                        provided template
+                    </a> 
+                    or create your own file(s). Supported formats include:
+                    <code>.xlsx</code>, <code>.xls</code>, <code>.ods</code>, <code>.csv</code>
+                </li>
+                <li>
+                    Prepare your spreadsheet(s) with questions. Make sure each row contains all the required fields based on the question type (see below).
+                </li>
+                <li>
+                    Upload your file(s) by selecting them or dragging them into the designated area.
+                </li>
+                <li>
+                    Click <span class="text-emerald-600 font-medium px-1">Download</span> to get your Moodle&reg;-compatible XML file.
+                </li>
+            </ol>
+        </section>
+        <section class="mb-8">
+            <h3 class="text-xl font-semibold mb-4">Formatting Your Spreadsheet</h3>
+            <p class="mb-4">
+                Use the 
+                <a 
+                    class="
+                        text-emerald-600 font-medium underline underline-offset-2 
+                        hover:text-emerald-700 hover:bg-emerald-50 rounded 
+                        px-1 
+                        transition-colors
+                    "
+                    href="#"
+                >
+                    provided template
+                </a>  
+                or create your own with each row representing a question (Column Name = Cell Value):
+            </p>
+            <ul class="list-disc pl-4 mb-4">
+                <li>
+                    <strong>Multiple Choice Row</strong>:<br>
+                    Type = "MC", Title, Question, OptionA-D, Correct (e.g., "A")
+                </li>
+                <li>
+                    <strong>True/False Row</strong>:<br>
+                    Type = "truefalse", Title, Question, Correct ("TRUE" or "FALSE")
+                </li>
+                <li>
+                    <strong>Short Answer Row</strong><br>
+                    Type = "shortanswer", Title, Question, Correct1–4 (answer text/alternatives), UseCase (OPTIONAL, "1" for case-sensitive)
+                </li>
+            </ul>
+            <p>
+                You can store questions, of any type, in several sheets, organized any way you like.
+            </p>
+        </section>
+        <section class="mb-10">
+            <h3 class="text-xl font-semibold mb-4">Still Unsure?</h3>
+            <p class="mb-2">If you're still confused, have any questions or suggestions, use the form below to contact me directly:</p>
+            <form
+                id="contact-form"
+                action="https://formspree.io/f/mpwdvrpq"
+                method="POST"
+                class="space-y-4"
+            >
+                <fieldset class="space-y-4 mt-8">
+                    <legend class="text-lg font-medium text-gray-900 mb-2">Contact Information</legend>
+                    <div>
+                        <label 
+                            for="first-name" 
+                            name="first-name"
+                            class="
+                                block
+                                mb-1
+                                text-sm font-medium text-gray-700
+                            "
+                        >
+                            First Name
+                        </label>
+                        <input 
+                            type="text" 
+                            name="first-name" 
+                            id="first-name" 
+                            class="
+                                block w-full
+                                mt-1 px-3 py-2
+                                bg-white
+                                border border-gray-300 rounded-md shadow-sm
+                                focus:outline-none focus:border-sky-500 sm:text-sm
+                            "
+                        >
+                    </div>
+                    <div>
+                        <label 
+                            for="last-name" 
+                            name="last-name"
+                            class="
+                                block
+                                mb-1
+                                text-sm font-medium text-gray-700
+                            "
+                        >
+                            Last Name
+                        </label>
+                        <input 
+                            type="text" 
+                            name="last-name" 
+                            id="last-name" 
+                            class="
+                                block w-full
+                                mt-1 px-3 py-2
+                                bg-white
+                                border border-gray-300 rounded-md shadow-sm
+                                focus:outline-none focus:border-sky-500 sm:text-sm
+                            "
+                        >
+                    </div>
+                    <div>
+                        <label 
+                            for="email" 
+                            name="email"
+                            class="
+                                block
+                                mb-1
+                                text-sm font-medium text-gray-700
+                            "
+                        >
+                            Email
+                        </label>
+                        <input 
+                            type="email" 
+                            name="email" 
+                            id="email" 
+                            required
+                            class="
+                                block w-full
+                                mt-1 px-3 py-2
+                                bg-white
+                                border border-gray-300 rounded-md shadow-sm
+                                focus:outline-none focus:border-sky-500 sm:text-sm
+                            "
+                        >
+                    </div>
+                </fieldset>
+                <fieldset class="space-y-4 mt-8">
+                    <legend class="text-lg font-medium text-gray-900 mb-2">Message</legend>
+                    <div>
+                        <label 
+                            for="subject" 
+                            name="subject"
+                            class="
+                                block
+                                mb-1
+                                text-sm font-medium text-gray-700
+                            "
+                        >
+                            Subject
+                        </label>
+                        <input 
+                            type="text" 
+                            name="subject" 
+                            id="subject"
+                            required
+                            class="
+                                block w-full
+                                mt-1 px-3 py-2
+                                bg-white
+                                border border-gray-300 rounded-md shadow-sm
+                                focus:outline-none focus:border-sky-500 sm:text-sm
+                            "
+                        >
+                    </div>
+                    <div>
+                        <label 
+                            for="message" 
+                            name="message"
+                            class="
+                                block
+                                mb-1
+                                text-sm font-medium text-gray-700
+                            "
+                        >
+                            Your message:
+                        </label>    
+                        <textarea 
+                            name="message" 
+                            id="message" 
+                            rows="4"
+                            required
+                            class="
+                                block w-full
+                                px-3 py-2
+                                bg-white
+                                border border-gray-300 rounded-md shadow-sm
+                                focus:outline-none focus:border-sky-500 sm:text-sm
+                            "
+                        ></textarea>
+                    </div>
+                </fieldset>
+                <div>
+                    <button 
+                        type="submit"
+                        class="
+                            w-full flex justify-center
+                            py-2.5 px-4
+                            border border-transparent rounded-md shadow-sm
+                            text-sm font-medium text-white bg-sky-400
+                            hover:bg-sky-500 cursor-pointer
+                            transition-colors
+                        "
+                    >
+                        Send
+                    </button>
+                </div>
+                
+            </form> 
+        </section>
+    </main>
+    <footer class="text-xs text-gray-500 text-center mt-10">
+        <p>&copy; 2025 Melek Redwan. Released under the 
+            <a 
+                class="
+                    text-sky-600 font-medium underline underline-offset-2 
+                    hover:text-sky-700 hover:bg-sky-50 rounded 
+                    px-0.5
+                    transition-colors
+                " 
+                href="https://github.com/mamlaki/quizient/blob/main/LICENSE"
+                target="_blank" rel="noopener"
+            >
+                MIT License
+            </a>
+            .
+        </p>
+        <p>
+            Moodle&reg; is a registered trademark of Moodle Pty Ltd.<br>Quizient is not affiliated with or endorsed by Moodle Pty Ltd.
+        </p>
+    </footer>
+</body>
+</html>
