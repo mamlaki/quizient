@@ -33,27 +33,40 @@ type Row = {
 
 // -------- Download button helper functions --------
 const showDownloadBtn = () => {
-    $btn.classList.remove('hidden');
-    requestAnimationFrame(() => {
-        $btn.classList.remove('opacity-0');
-        $btn.classList.add('opacity-100');
-    });
+    if ($btn) {
+        $btn.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            $btn.classList.remove('opacity-0');
+            $btn.classList.add('opacity-100');
+        });
+    }
 }
 
 const hideDownloadBtn = () => {
-    $btn.classList.remove('opacity-100');
-    $btn.classList.add('opacity-0');
-    setTimeout(() => {
-        $btn.classList.add('hidden');
-    }, 300);
+    if ($btn) {
+        $btn.classList.remove('opacity-100');
+        $btn.classList.add('opacity-0');
+        setTimeout(() => {
+            $btn.classList.add('hidden');
+        }, 300);
+    }
 }
 
 // -------- Log helper functions --------
-const showLog = () => $log.classList.remove('hidden');
+const showLog = () => {
+    if ($log) {
+        $log.classList.remove('hidden');
+    }
+}
 
-const clearLog = () => $log.innerHTML = '';
+const clearLog = () =>  {
+    if ($log) {
+        $log.innerHTML = '';
+    }
+}
 
 const appendLog = (message: string) => {
+    if (!$log) return null;
     showLog();
     const entry = document.createElement('div');
     entry.className = 'log-entry flex flex-row-reverse justify-end items-center gap-2 opacity-0 transition-opacity duration-500 mb-2';
@@ -85,6 +98,13 @@ function processLogQueue() {
     const { message, callback, logType } = logQueue.shift()!;
     const entry = appendLog(message);
 
+    if (!entry) {
+        isProcessingLog = false;
+        if (callback) callback();
+        processLogQueue();
+        return;
+    }
+
     setTimeout(() => {
         const loadingIcon = entry.querySelector('.log-loading-icon');
         if (loadingIcon) {
@@ -107,6 +127,10 @@ function processLogQueue() {
 }
 
 const queueLog = (message: string, callback?: () => void, logType: 'info' | 'error' = 'info') => {
+    if (!$log) {
+        if (callback) callback();
+        return;
+    }
     logQueue.push({ message, callback, logType });
     processLogQueue();
 }
@@ -140,7 +164,7 @@ function rowToQuestion(row: Row) {
                     text: 'false'
                 }
             ]
-        }
+        };
     } else if (questionType === 'shortanswer') {
         // Short answer question type
         const useCase = row.UseCase === '1' ? 1 : 0;
@@ -161,7 +185,7 @@ function rowToQuestion(row: Row) {
             '@_type': 'shortanswer',
             usecase: useCase,
             answer: answers
-        }
+        };
     } else {
         // Default to multiplechoice for now if truefalse isn't being used
         // Build answers list
@@ -187,152 +211,154 @@ function rowToQuestion(row: Row) {
 
 
 // -------- When a user adds a file --------
-$file.addEventListener('change', async () => {
-    // Reset UI elements
-    clearLog();
-    logQueue = [];
-    isProcessingLog = false;
-
-    hideDownloadBtn();
-
-    // Grab the first file (if multiple files were uploaded and if it exists)
-    const file = $file.files?.[0];
-    if (!file) return; 
+if ($file && $dropZone && $btn && $log) {
+    $file.addEventListener('change', async () => {
+        // Reset UI elements
+        clearLog();
+        logQueue = [];
+        isProcessingLog = false;
     
-    queueLog(`Loading: ${file.name} ...`); // UI update
-    
-    // UI updates based on file type
-    const fileTypes: Record<string, string> = {
-        'text/csv': 'CSV',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
-        'application/vnd.ms-excel': 'XLS',
-        'application/vnd.oasis.opendocument.spreadsheet': 'ODS'
-    };
-
-    let fileTypeDesc = fileTypes[file.type];
-
-    if (fileTypeDesc) {
-        console.log(`Processing ${fileTypeDesc} file: ${file.name}...`);
-        queueLog(`Processing ${fileTypeDesc} file: ${file.name}...`);
-    } else if (file.type === '' || file.type === 'application/octet-stream') {
-        fileTypeDesc = 'Unknown';
-        console.log(`Processing file (unknown, type): ${file.name}...`);
-        queueLog(`Processing file (unknown, type): ${file.name}...`);
-    } else {
-        console.log(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
-        queueLog(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`, undefined, 'error');
         hideDownloadBtn();
-        return;
-    }
-
-    // Parse the file
-    try {
-        const buffer = await file.arrayBuffer();
-        const wb = read(buffer, {type: 'array'});
-
-        let allQuestions : any[] = [];
-        let totalRowsProcessed = 0;
-
-        // Loop through each sheet in file
-        for (const sheetName of wb.SheetNames) {
-            console.log(`Processing sheet: ${sheetName}`);
-
-            const sheet = wb.Sheets[sheetName]; // grab sheet
-            const rows = utils.sheet_to_json<Row>( // convert current sheet to JSON row objects
-                sheet, { raw: false }
-            );
-            totalRowsProcessed += rows.length;
-
-            const questionsFromSheet = rows.map(rowToQuestion).filter(question => question !== null);
-
-            allQuestions = allQuestions.concat(questionsFromSheet);
-
-            if (rows.length > 0) {
-                console.log(`Found ${rows.length} rows in sheet "${sheetName}", generated ${questionsFromSheet.length} questions.`);
-            }
-        }
-
-        // Check for no data
-        if (totalRowsProcessed === 0) {
-            queueLog(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`, undefined, 'error');
-            hideDownloadBtn();
-            return;
-        }
-
-        // Check for valid questions
-        if (allQuestions.length === 0 && totalRowsProcessed > 0) {
-            queueLog(`No valid questions could be generated from ${file.name}.`, undefined, 'error');
-            hideDownloadBtn();
-            return;
-        }
-
-        // Build XML 
-        const builder = new XMLBuilder({ 
-            ignoreAttributes: false, 
-            attributeNamePrefix: '@_', 
-            format: true, 
-            cdataPropName: '#cdata' 
-        });
-        xmlString  = builder.build({ quiz: { question: allQuestions }});
+    
+        // Grab the first file (if multiple files were uploaded and if it exists)
+        const file = $file.files?.[0];
+        if (!file) return; 
         
-        queueLog(`Generated ${allQuestions.length} questions`, () => {
-            // Note if any rows were skipped/invalid
-            if (allQuestions.length < totalRowsProcessed) {
-                queueLog(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`);
+        queueLog(`Loading: ${file.name} ...`); // UI update
+        
+        // UI updates based on file type
+        const fileTypes: Record<string, string> = {
+            'text/csv': 'CSV',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+            'application/vnd.ms-excel': 'XLS',
+            'application/vnd.oasis.opendocument.spreadsheet': 'ODS'
+        };
+    
+        let fileTypeDesc = fileTypes[file.type];
+    
+        if (fileTypeDesc) {
+            console.log(`Processing ${fileTypeDesc} file: ${file.name}...`);
+            queueLog(`Processing ${fileTypeDesc} file: ${file.name}...`);
+        } else if (file.type === '' || file.type === 'application/octet-stream') {
+            fileTypeDesc = 'Unknown';
+            console.log(`Processing file (unknown, type): ${file.name}...`);
+            queueLog(`Processing file (unknown, type): ${file.name}...`);
+        } else {
+            console.log(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
+            queueLog(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`, undefined, 'error');
+            hideDownloadBtn();
+            return;
+        }
+    
+        // Parse the file
+        try {
+            const buffer = await file.arrayBuffer();
+            const wb = read(buffer, {type: 'array'});
+    
+            let allQuestions : any[] = [];
+            let totalRowsProcessed = 0;
+    
+            // Loop through each sheet in file
+            for (const sheetName of wb.SheetNames) {
+                console.log(`Processing sheet: ${sheetName}`);
+    
+                const sheet = wb.Sheets[sheetName]; // grab sheet
+                const rows = utils.sheet_to_json<Row>( // convert current sheet to JSON row objects
+                    sheet, { raw: false }
+                );
+                totalRowsProcessed += rows.length;
+    
+                const questionsFromSheet = rows.map(rowToQuestion).filter(question => question !== null);
+    
+                allQuestions = allQuestions.concat(questionsFromSheet);
+    
+                if (rows.length > 0) {
+                    console.log(`Found ${rows.length} rows in sheet "${sheetName}", generated ${questionsFromSheet.length} questions.`);
+                }
             }
-            // Show the download button 
-            showDownloadBtn();
-        }); // UI update    
-
-    } catch(error) {
-        console.error(`Error processing ${file.name}`, error);
-        queueLog(`Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`);
-    }
-});
-
-
-// -------- Drop zone functionality --------
-if ($dropZone && $file) {
-    // Highlight style when a file is hovering above
-    $dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        $dropZone.classList.add('bg-sky-50');
-    });
-
-    // Remove hovering above styles
-    $dropZone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        $dropZone.classList.remove('bg-sky-50');
-    }); 
-
-    // Actual functionality
-    $dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        $dropZone.classList.remove('bg-sky-50');
-        const files = (e.dataTransfer?.files || []);
-        if (files.length > 0) {
-            // @ts-expect-error
-            $file.files = files;
-            $file.dispatchEvent(new Event('change')); // triggers the change event listener above (aka the file processing)
+    
+            // Check for no data
+            if (totalRowsProcessed === 0) {
+                queueLog(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`, undefined, 'error');
+                hideDownloadBtn();
+                return;
+            }
+    
+            // Check for valid questions
+            if (allQuestions.length === 0 && totalRowsProcessed > 0) {
+                queueLog(`No valid questions could be generated from ${file.name}.`, undefined, 'error');
+                hideDownloadBtn();
+                return;
+            }
+    
+            // Build XML 
+            const builder = new XMLBuilder({ 
+                ignoreAttributes: false, 
+                attributeNamePrefix: '@_', 
+                format: true, 
+                cdataPropName: '#cdata' 
+            });
+            xmlString  = builder.build({ quiz: { question: allQuestions }});
+            
+            queueLog(`Generated ${allQuestions.length} questions`, () => {
+                // Note if any rows were skipped/invalid
+                if (allQuestions.length < totalRowsProcessed) {
+                    queueLog(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`);
+                }
+                // Show the download button 
+                showDownloadBtn();
+            }); // UI update    
+    
+        } catch(error) {
+            console.error(`Error processing ${file.name}`, error);
+            queueLog(`Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`);
         }
     });
-
-    $dropZone.addEventListener('click', () => {
-        $file.click();
-    })
+    
+    
+    // -------- Drop zone functionality --------
+    if ($dropZone && $file) {
+        // Highlight style when a file is hovering above
+        $dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            $dropZone.classList.add('bg-sky-50');
+        });
+    
+        // Remove hovering above styles
+        $dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            $dropZone.classList.remove('bg-sky-50');
+        }); 
+    
+        // Actual functionality
+        $dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            $dropZone.classList.remove('bg-sky-50');
+            const files = (e.dataTransfer?.files || []);
+            if (files.length > 0) {
+                // @ts-expect-error
+                $file.files = files;
+                $file.dispatchEvent(new Event('change')); // triggers the change event listener above (aka the file processing)
+            }
+        });
+    
+        $dropZone.addEventListener('click', () => {
+            $file.click();
+        })
+    }
+    
+    
+    // -------- Download button click functionality --------
+    $btn.addEventListener('click', () => {
+        const blob = new Blob([xmlString], { type: 'text/xml' }); // create blob 
+        const url = URL.createObjectURL(blob); // temp blob url
+    
+        // Create hidden link that is auto clicked which downloads the file
+        Object.assign(document.createElement('a'), {
+            href: url,
+            download: 'questions.xml'
+        }).click();
+    
+        URL.revokeObjectURL(url); // revokes the temp blob url
+    });
 }
-
-
-// -------- Download button click functionality --------
-$btn.addEventListener('click', () => {
-    const blob = new Blob([xmlString], { type: 'text/xml' }); // create blob 
-    const url = URL.createObjectURL(blob); // temp blob url
-
-    // Create hidden link that is auto clicked which downloads the file
-    Object.assign(document.createElement('a'), {
-        href: url,
-        download: 'questions.xml'
-    }).click();
-
-    URL.revokeObjectURL(url); // revokes the temp blob url
-});
