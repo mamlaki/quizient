@@ -5,6 +5,10 @@ import { read, utils } from 'xlsx';
 // UI/UX
 import { createElement, CircleCheck, CircleX, LoaderCircle } from 'lucide';
 
+// Web Components
+import './components/SiteHeader';
+import './components/SiteFooter';
+
 // DOM Declarations
 const $file = document.querySelector('#file-input') as HTMLInputElement;
 const $log = document.querySelector('#log') as HTMLElement;

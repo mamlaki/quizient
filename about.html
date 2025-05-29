@@ -7,19 +7,7 @@
     <title>Quizient</title>
 </head>
 <body class="p-8">
-    <header class="mb-12 text-center">
-        <nav class="flex items-center justify-between w-full max-w-lg mx-auto">
-            <div id="logo">
-                <a href="./" class="hover:text-sky-600 transition-colors">
-                    <h1 class="text-2xl font-bold">Quizient</h1>
-                </a>
-            </div>
-            <ul id="nav-items" class="flex space-x-4">
-                <li><a href="about.html" class="text-sky-600">About</a></li>
-                <li><a href="support.html" class="text-gray-700 hover:text-sky-600 transition-colors">Help</a></li>
-            </ul>
-        </nav>
-    </header>
+    <site-header></site-header>
     <main class="max-w-xl mx-auto">
         <h2 class="text-3xl text-gray-800 mb-6">About Quizient</h2>
         <!-- About -->
@@ -227,25 +215,7 @@
             </ul>
         </section>
     </main>
-    <footer class="text-xs text-gray-500 text-center mt-10">
-        <p>&copy; 2025 Melek Redwan. Released under the 
-            <a 
-                class="
-                    text-sky-600 font-medium underline underline-offset-2 
-                    hover:text-sky-700 hover:bg-sky-50 rounded 
-                    px-0.5
-                    transition-colors
-                " 
-                href="https://github.com/mamlaki/quizient/blob/main/LICENSE"
-                target="_blank" rel="noopener"
-            >
-                MIT License
-            </a>
-            .
-        </p>
-        <p>
-            Moodle&reg; is a registered trademark of Moodle Pty Ltd.<br>Quizient is not affiliated with or endorsed by Moodle Pty Ltd.
-        </p>
-    </footer>
+    <site-footer></site-footer>
+    <script type="module" src="src/main.ts"></script>
 </body>
 </html>
