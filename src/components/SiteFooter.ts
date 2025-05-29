@@ -13,8 +13,10 @@ class SiteFooter extends HTMLElement {
             }
             const footerHTML = await response.text();
             this.innerHTML = footerHTML;
+            this.classList.add('loaded');
         } catch (error) {
             console.error('Error loading footer: ', error);
+            this.classList.add('loaded');
         }
     }
 }

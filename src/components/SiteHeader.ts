@@ -13,9 +13,11 @@ class SiteHeader extends HTMLElement {
             }
             const headerHTML = await response.text();
             this.innerHTML = headerHTML;
+            this.classList.add('loaded')
             // this.updateNavLinks();
         } catch (error) {
             console.error('Error loading header: ', error);
+            this.classList.add('loaded')
         }
     }
 
