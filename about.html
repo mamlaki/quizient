@@ -10,99 +10,55 @@
     <site-header>
         <div class="min-h-70 max-w-lg"></div>
     </site-header>
-    <main class="max-w-xl mx-auto">
-        <h2 class="text-3xl text-gray-800 mb-6">About Quizient</h2>
-        <!-- About -->
-        <section class="mb-6">
-            <h3 class="text-xl font-semibold mb-2">What is Quizient</h3>
-            <p>
-                Quizient is a simple tool designed to help educators and administrators convert spreadsheet-based question banks into the 
-                <a 
-                    class="
-                        text-sky-600 font-medium underline underline-offset-2 
-                        hover:text-sky-700 hover:bg-sky-50 rounded 
-                        px-1 
-                        transition-colors
-                    " 
-                    href="https://docs.moodle.org/500/en/Moodle_XML_format" 
-                    target="_blank" rel="noopener"
-                >
-                    Moodle&reg; XML
-                </a> 
-                format. Whether you're an educator managing a single course or an administrator managing an entire site, Quizient helps save time and is very easy to use.
-            </p>
-        </section>
-        <!-- Why? -->
-        <section class="mb-6">
-            <h3 class="text-xl font-semibold mb-2">Why Does This Exist?</h3>
-            <p class="mb-4">
-                During my Bachelor of Technology (BTech) degree capstone project, my team recommended 
-                <a
-                    class="
-                        text-sky-600 font-medium underline underline-offset-2 
-                        hover:text-sky-700 hover:bg-sky-50 rounded 
-                        px-0.5 
-                        transition-colors
-                    "
-                    href="https://moodle.org/"
-                    target="_blank" rel="noopener"
-                >
-                    Moodle&reg;
-                </a> 
-                as part of a custom solution for our project sponsors, who were looking for a reliable platform for distirbuting and managing emergency services aptitude tests. Moodle was a strong fit, especially for its question bank capabilities.
-            </p>
-            <p>
-                After completing the degree, I built Quizient to support the sponsors—and others like them—by making it easy to convert questions organized in spreadsheets into Moodle's XML format, allowing them to be imported seamlessly.  
-            </p>
-        </section>
-        <section class="mb-6">
-            <h3 class="text-xl font-semibold mb-2">Who's This For?</h3>
-            <ul class="list-disc pl-4">
-                <li>Instructors using Moodle for quizzes or exams</li>
-                <li>Course coordinators managing large question banks</li>
-                <li>Administrators or IT staff managing Moodle instance(s) for an organization</li>
-                <li>Anyone who wants a faster way to bulk import questions into Moodle</li>
-            </ul>
-        </section>
-        <section class="mb-6"> 
-            <h3 class="text-xl font-semibold mb-2">How It Works</h3>
-            <ol class="list-decimal mb-4 pl-4">
-                <li>Upload your spreadsheet (.xlsx, .xls, .ods, or .csv)</li>
-                <li>Each row becomes a question (Multiple Choice, True/False, Short Answer)</li>
-                <li>Quizient generates a Moodle-compatible XML file</li>
-                <li>Download the XML file and import it into Moodle</li>
-            </ol>
-            <p>Feel free to visit the 
-                <a 
-                    class="
-                        text-sky-600 font-medium underline underline-offset-2 
-                        hover:text-sky-700 hover:bg-sky-50 rounded 
-                        px-1 
-                        transition-colors
-                    " 
-                    href="https://github.com/mamlaki/quizient"
-                    target="_blank" rel="noopener"
-                >
-                    GitHub
-                </a>     
-                repo to take a look at the code itself or to run the app locally!
-            </p>
-        </section>
-        <section class="mb-6">
-            <h3 class="text-xl font-semibold mb-2">Features</h3>
-            <ul class="list-disc pl-4">
-                <li>Supports multiple question types</li>
-                <li>Accepts alternate short answer responses</li>
-                <li>Wildcard support for partial short answer matches</li>
-                <li>Convert several spreadsheets at once</li>
-                <li>Built-in validation for common errors</li>
-            </ul>
-        </section>
-        <section class="mb-6">
-            <h3 class="text-xl font-semibold mb-2">Acknowledgements</h3>
-            <p class="mb-2">Built using:</p>
-            <ul class="pl-2 space-y-2">
-                <li>
+    <!-- Side Nav -->
+    <div class="flex flex-row-reverse gap-12 relative max-w-2xl mx-auto">
+        <aside id="page-nav" class="w-1/4 sticky top-24 self-start hidden lg:block py-4">
+            <nav>
+                <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    Table of Contents
+                </h4>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#what-is-quizient" class="text-gray-600 hover:text-sky-600 text-sm block">
+                            What is Quizient?
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#why-exist" class="text-gray-600 hover:text-sky-600 text-sm block">
+                            Why Does THis Exist?
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#who-for" class="text-gray-600 hover:text-sky-600 text-sm block">
+                            Who's This For?
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#how-it-works" class="text-gray-600 hover:text-sky-600 text-sm block">
+                            How It Works
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#features" class="text-gray-600 hover:text-sky-600 text-sm block">
+                            Features
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#acknowledgements" class="text-gray-600 hover:text-sky-600 text-sm block">
+                            Acknowledgements
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        <!-- Main Content -->
+        <main>
+            <h2 class="text-3xl text-gray-800 mb-6">About Quizient</h2>
+            <!-- About -->
+            <section class="mb-6">
+                <h3 id="what-is-quizient" class="text-xl font-semibold mb-2">What is Quizient?</h3>
+                <p>
+                    Quizient is a simple tool designed to help educators and administrators convert spreadsheet-based question banks into the 
                     <a 
                         class="
                             text-sky-600 font-medium underline underline-offset-2 
@@ -110,13 +66,55 @@
                             px-1 
                             transition-colors
                         " 
-                        href="https://vite.dev/"
+                        href="https://docs.moodle.org/500/en/Moodle_XML_format" 
                         target="_blank" rel="noopener"
                     >
-                        Vite
-                    </a>
-                </li>
-                <li>
+                        Moodle&reg; XML
+                    </a> 
+                    format. Whether you're an educator managing a single course or an administrator managing an entire site, Quizient helps save time and is very easy to use.
+                </p>
+            </section>
+            <!-- Why? -->
+            <section class="mb-6">
+                <h3 id="why-exist" class="text-xl font-semibold mb-2">Why Does This Exist?</h3>
+                <p class="mb-4">
+                    During my Bachelor of Technology (BTech) degree capstone project, my team recommended 
+                    <a
+                        class="
+                            text-sky-600 font-medium underline underline-offset-2 
+                            hover:text-sky-700 hover:bg-sky-50 rounded 
+                            px-0.5 
+                            transition-colors
+                        "
+                        href="https://moodle.org/"
+                        target="_blank" rel="noopener"
+                    >
+                        Moodle&reg;
+                    </a> 
+                    as part of a custom solution for our project sponsors, who were looking for a reliable platform for distirbuting and managing emergency services aptitude tests. Moodle was a strong fit, especially for its question bank capabilities.
+                </p>
+                <p>
+                    After completing the degree, I built Quizient to support the sponsors—and others like them—by making it easy to convert questions organized in spreadsheets into Moodle's XML format, allowing them to be imported seamlessly.  
+                </p>
+            </section>
+            <section id="who-for" class="mb-6">
+                <h3 class="text-xl font-semibold mb-2">Who's This For?</h3>
+                <ul class="list-disc pl-4">
+                    <li>Instructors using Moodle for quizzes or exams</li>
+                    <li>Course coordinators managing large question banks</li>
+                    <li>Administrators or IT staff managing Moodle instance(s) for an organization</li>
+                    <li>Anyone who wants a faster way to bulk import questions into Moodle</li>
+                </ul>
+            </section>
+            <section id="how-it-works" class="mb-6"> 
+                <h3 class="text-xl font-semibold mb-2">How It Works</h3>
+                <ol class="list-decimal mb-4 pl-4">
+                    <li>Upload your spreadsheet (.xlsx, .xls, .ods, or .csv)</li>
+                    <li>Each row becomes a question (Multiple Choice, True/False, Short Answer)</li>
+                    <li>Quizient generates a Moodle-compatible XML file</li>
+                    <li>Download the XML file and import it into Moodle</li>
+                </ol>
+                <p>Feel free to visit the 
                     <a 
                         class="
                             text-sky-600 font-medium underline underline-offset-2 
@@ -124,99 +122,144 @@
                             px-1 
                             transition-colors
                         " 
-                        href="https://www.typescriptlang.org/"
+                        href="https://github.com/mamlaki/quizient"
                         target="_blank" rel="noopener"
                     >
-                        TypeScript
-                    </a>
-                </li>
-                <li>
-                    <a 
+                        GitHub
+                    </a>     
+                    repo to take a look at the code itself or to run the app locally!
+                </p>
+            </section>
+            <section id="features" class="mb-6">
+                <h3 class="text-xl font-semibold mb-2">Features</h3>
+                <ul class="list-disc pl-4">
+                    <li>Supports multiple question types</li>
+                    <li>Accepts alternate short answer responses</li>
+                    <li>Wildcard support for partial short answer matches</li>
+                    <li>Convert several spreadsheets at once</li>
+                    <li>Built-in validation for common errors</li>
+                </ul>
+            </section>
+            <section id="acknowledgements" class="mb-6">
+                <h3 class="text-xl font-semibold mb-2">Acknowledgements</h3>
+                <p class="mb-2">Built using:</p>
+                <ul class="pl-2 space-y-2">
+                    <li>
+                        <a 
+                            class="
+                                text-sky-600 font-medium underline underline-offset-2 
+                                hover:text-sky-700 hover:bg-sky-50 rounded 
+                                px-1 
+                                transition-colors
+                            " 
+                            href="https://vite.dev/"
+                            target="_blank" rel="noopener"
+                        >
+                            Vite
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            class="
+                                text-sky-600 font-medium underline underline-offset-2 
+                                hover:text-sky-700 hover:bg-sky-50 rounded 
+                                px-1 
+                                transition-colors
+                            " 
+                            href="https://www.typescriptlang.org/"
+                            target="_blank" rel="noopener"
+                        >
+                            TypeScript
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            class="
+                                text-sky-600 font-medium underline underline-offset-2 
+                                hover:text-sky-700 hover:bg-sky-50 rounded 
+                                px-1 
+                                transition-colors
+                            " 
+                            href="https://sheetjs.com/"
+                            target="_blank" rel="noopener"
+                        >
+                            SheetJS
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            class="
+                                text-sky-600 font-medium underline underline-offset-2 
+                                hover:text-sky-700 hover:bg-sky-50 rounded 
+                                px-1 
+                                transition-colors
+                            " 
+                            href="https://github.com/NaturalIntelligence/fast-xml-parser#readme"
+                            target="_blank" rel="noopener"
+                        >
+                            fast-xml-parser
+                        </a>
+                    </li>
+                    <li>
+                        <a 
                         class="
                             text-sky-600 font-medium underline underline-offset-2 
                             hover:text-sky-700 hover:bg-sky-50 rounded 
                             px-1 
                             transition-colors
                         " 
-                        href="https://sheetjs.com/"
+                        href="https://formspree.io/"
                         target="_blank" rel="noopener"
-                    >
-                        SheetJS
+                        >
+                            Formspree
                     </a>
-                </li>
-                <li>
-                    <a 
-                        class="
-                            text-sky-600 font-medium underline underline-offset-2 
-                            hover:text-sky-700 hover:bg-sky-50 rounded 
-                            px-1 
-                            transition-colors
-                        " 
-                        href="https://github.com/NaturalIntelligence/fast-xml-parser#readme"
-                        target="_blank" rel="noopener"
-                    >
-                        fast-xml-parser
-                    </a>
-                </li>
-                <li>
-                    <a 
-                    class="
-                        text-sky-600 font-medium underline underline-offset-2 
-                        hover:text-sky-700 hover:bg-sky-50 rounded 
-                        px-1 
-                        transition-colors
-                    " 
-                    href="https://formspree.io/"
-                    target="_blank" rel="noopener"
-                    >
-                        Formspree
-                </a>
-                </li>
-                <li>
-                    <a 
-                        class="
-                            text-sky-600 font-medium underline underline-offset-2 
-                            hover:text-sky-700 hover:bg-sky-50 rounded 
-                            px-1 
-                            transition-colors
-                        " 
-                        href="https://tailwindcss.com/"
-                        target="_blank" rel="noopener"
-                    >
-                        Tailwind CSS
-                    </a>
-                </li>
-                <li>
-                    <a 
-                        class="
-                            text-sky-600 font-medium underline underline-offset-2 
-                            hover:text-sky-700 hover:bg-sky-50 rounded 
-                            px-1 
-                            transition-colors
-                        " 
-                        href="https://lucide.dev/"
-                        target="_blank" rel="noopener"
-                    >
-                        Lucide
-                    </a>
-                </li>
-                <li>
-                    <a 
-                        class="
-                            text-sky-600 font-medium underline underline-offset-2 
-                            hover:text-sky-700 hover:bg-sky-50 rounded 
-                            px-1 
-                            transition-colors
-                        " 
-                        href="https://pages.github.com/"
-                        target="_blank" rel="noopener"
-                    >
-                        GitHub Pages
-                    </a>
-                </li>
-            </ul>
-        </section>
-    </main>
+                    </li>
+                    <li>
+                        <a 
+                            class="
+                                text-sky-600 font-medium underline underline-offset-2 
+                                hover:text-sky-700 hover:bg-sky-50 rounded 
+                                px-1 
+                                transition-colors
+                            " 
+                            href="https://tailwindcss.com/"
+                            target="_blank" rel="noopener"
+                        >
+                            Tailwind CSS
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            class="
+                                text-sky-600 font-medium underline underline-offset-2 
+                                hover:text-sky-700 hover:bg-sky-50 rounded 
+                                px-1 
+                                transition-colors
+                            " 
+                            href="https://lucide.dev/"
+                            target="_blank" rel="noopener"
+                        >
+                            Lucide
+                        </a>
+                    </li>
+                    <li>
+                        <a 
+                            class="
+                                text-sky-600 font-medium underline underline-offset-2 
+                                hover:text-sky-700 hover:bg-sky-50 rounded 
+                                px-1 
+                                transition-colors
+                            " 
+                            href="https://pages.github.com/"
+                            target="_blank" rel="noopener"
+                        >
+                            GitHub Pages
+                        </a>
+                    </li>
+                </ul>
+            </section>
+        </main>
+    </div>
     <site-footer>
         <div class="min-h-90 max-w-lg"></div>
     </site-footer>
