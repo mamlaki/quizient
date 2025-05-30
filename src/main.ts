@@ -9,6 +9,12 @@ import { createElement, CircleCheck, CircleX, LoaderCircle } from 'lucide';
 import './components/SiteHeader';
 import './components/SiteFooter';
 
+// Constants
+const TRANSITION_DURATION = 300;
+const TAILWIND_LG_BREAKPOINT = 1024;
+const LOG_QUEUE_DELAY = 400;
+const FADE_IN_DELAY = 10;
+
 // DOM Declarations
 const $file = document.querySelector('#file-input') as HTMLInputElement;
 const $log = document.querySelector('#log') as HTMLElement;
@@ -53,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!overlay) {
                     overlay = document.createElement('div');
                     overlay.id = 'toc-overlay';
-                    overlay.className = 'fixed inset-0 z-30 bg-black opacity-0 transition-opacity duraiton-300 lg:hidden';
+                    overlay.className = 'fixed inset-0 z-30 bg-black opacity-0 transition-opacity duration-300 lg:hidden';
                     document.body.appendChild(overlay);
                     overlay.addEventListener('click', closeToc);
                 }
@@ -82,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     setTimeout(() => {
                         overlay.classList.add('hidden');
-                    }, 300);
+                    }, TRANSITION_DURATION);
                 }
                 document.body.style.overflow = '';
             };
@@ -100,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tocLinks.forEach(link => {
                 link.addEventListener('click', () => {
-                    if (window.innerWidth < 1024) { // 1024px is Tailwind's lg
+                    if (window.innerWidth < TAILWIND_LG_BREAKPOINT) {
                         closeToc();
                     }
                 });
@@ -127,7 +133,7 @@ const hideDownloadBtn = () => {
         $btn.classList.add('opacity-0');
         setTimeout(() => {
             $btn.classList.add('hidden');
-        }, 300);
+        }, TRANSITION_DURATION);
     }
 }
 
@@ -151,7 +157,7 @@ const appendLog = (message: string) => {
     entry.className = 'log-entry flex flex-row-reverse justify-end items-center gap-2 opacity-0 transition-opacity duration-500 mb-2';
     setTimeout(() => {
         entry.classList.add('opacity-100');
-    }, 10);
+    }, FADE_IN_DELAY);
     // Loading
     const loadingIcon = createElement(LoaderCircle, { size: 18, class: 'log-loading-icon' });
     loadingIcon.classList.add('animate-spin', 'text-sky-400');
@@ -202,7 +208,7 @@ function processLogQueue() {
         isProcessingLog = false;
         if (callback) callback();
         processLogQueue();
-    }, 400);
+    }, LOG_QUEUE_DELAY);
 }
 
 const queueLog = (message: string, callback?: () => void, logType: 'info' | 'error' = 'info') => {
