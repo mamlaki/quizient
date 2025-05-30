@@ -4,20 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quizient</title>
-  <script type="module" crossorigin src="/quizient/assets/main-DWvoeUGr.js"></script>
-  <link rel="stylesheet" crossorigin href="/quizient/assets/main-C12F32vY.css">
+  <script type="module" crossorigin src="/quizient/assets/main-BuW9ssiQ.js"></script>
+  <link rel="stylesheet" crossorigin href="/quizient/assets/main-CKNoPsZW.css">
 </head>
 <body class="p-8">
     <site-header>
         <div class="min-h-70 max-w-lg"></div>
     </site-header>
-    <main class="max-w-xl mx-auto">
-        <h2 class="text-3xl text-gray-800 mb-8">Need Help?</h2>
-        <!-- Support -->
-        <section class="mb-8">
-            <h3 class="text-xl font-semibold mb-4">Getting Started</h3>
-            <ol class="list-decimal pl-4 space-y-4">
-                <li>
+    <!-- Side Nav -->
+    <div class="flex flex-row-reverse gap-12 relative max-w-2xl mx-auto">
+        <aside id="page-nav" class="w-1/4 sticky top-24 self-start hidden lg:block py-4">
+            <nav>
+                <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    Table of Contents
+                </h4>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#getting-started" class="text-gray-600 hover:text-sky-600 text-sm block">
+                            Get Started
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#formatting-spreadsheet" class="text-gray-600 hover:text-sky-600 text-sm block">
+                            Formatting
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#contact" class="text-gray-600 hover:text-sky-600 text-sm block">
+                            Contact
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        <!-- Main Content -->
+        <main>
+            <h2 class="text-3xl text-gray-800 mb-8">Need Help?</h2>
+            <!-- Support -->
+            <section id="getting-started" class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">Getting Started</h3>
+                <ol class="list-decimal pl-4 space-y-4">
+                    <li>
+                        Use the 
+                        <a 
+                            class="
+                                text-emerald-600 font-medium underline underline-offset-2 
+                                hover:text-emerald-700 hover:bg-emerald-50 rounded 
+                                px-1 
+                                transition-colors
+                            "
+                            href="#"
+                        >
+                            provided template
+                        </a> 
+                        or create your own file(s). Supported formats include:
+                        <code>.xlsx</code>, <code>.xls</code>, <code>.ods</code>, <code>.csv</code>
+                    </li>
+                    <li>
+                        Prepare your spreadsheet(s) with questions. Make sure each row contains all the required fields based on the question type (see below).
+                    </li>
+                    <li>
+                        Upload your file(s) by selecting them or dragging them into the designated area.
+                    </li>
+                    <li>
+                        Click <span class="text-emerald-600 font-medium px-1">Download</span> to get your Moodle&reg;-compatible XML file.
+                    </li>
+                </ol>
+            </section>
+            <section id="formatting-spreadsheet" class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">Formatting Your Spreadsheet</h3>
+                <p class="mb-4">
                     Use the 
                     <a 
                         class="
@@ -29,218 +85,190 @@
                         href="#"
                     >
                         provided template
-                    </a> 
-                    or create your own file(s). Supported formats include:
-                    <code>.xlsx</code>, <code>.xls</code>, <code>.ods</code>, <code>.csv</code>
-                </li>
-                <li>
-                    Prepare your spreadsheet(s) with questions. Make sure each row contains all the required fields based on the question type (see below).
-                </li>
-                <li>
-                    Upload your file(s) by selecting them or dragging them into the designated area.
-                </li>
-                <li>
-                    Click <span class="text-emerald-600 font-medium px-1">Download</span> to get your Moodle&reg;-compatible XML file.
-                </li>
-            </ol>
-        </section>
-        <section class="mb-8">
-            <h3 class="text-xl font-semibold mb-4">Formatting Your Spreadsheet</h3>
-            <p class="mb-4">
-                Use the 
-                <a 
-                    class="
-                        text-emerald-600 font-medium underline underline-offset-2 
-                        hover:text-emerald-700 hover:bg-emerald-50 rounded 
-                        px-1 
-                        transition-colors
-                    "
-                    href="#"
+                    </a>  
+                    or create your own with each row representing a question (Column Name = Cell Value):
+                </p>
+                <ul class="list-disc pl-4 mb-4">
+                    <li>
+                        <strong>Multiple Choice Row</strong>:<br>
+                        Type = "MC", Title, Question, OptionA-D, Correct (e.g., "A")
+                    </li>
+                    <li>
+                        <strong>True/False Row</strong>:<br>
+                        Type = "truefalse", Title, Question, Correct ("TRUE" or "FALSE")
+                    </li>
+                    <li>
+                        <strong>Short Answer Row</strong><br>
+                        Type = "shortanswer", Title, Question, Correct1–4 (answer text/alternatives), UseCase (OPTIONAL, "1" for case-sensitive)
+                    </li>
+                </ul>
+                <p>
+                    You can store questions, of any type, in several sheets, organized any way you like.
+                </p>
+            </section>
+            <section id="contact" class="mb-10">
+                <h3 class="text-xl font-semibold mb-4">Still Unsure?</h3>
+                <p class="mb-2">If you're still confused, have any questions or suggestions, use the form below to contact me directly:</p>
+                <form
+                    id="contact-form"
+                    action="https://formspree.io/f/mpwdvrpq"
+                    method="POST"
+                    class="space-y-4"
                 >
-                    provided template
-                </a>  
-                or create your own with each row representing a question (Column Name = Cell Value):
-            </p>
-            <ul class="list-disc pl-4 mb-4">
-                <li>
-                    <strong>Multiple Choice Row</strong>:<br>
-                    Type = "MC", Title, Question, OptionA-D, Correct (e.g., "A")
-                </li>
-                <li>
-                    <strong>True/False Row</strong>:<br>
-                    Type = "truefalse", Title, Question, Correct ("TRUE" or "FALSE")
-                </li>
-                <li>
-                    <strong>Short Answer Row</strong><br>
-                    Type = "shortanswer", Title, Question, Correct1–4 (answer text/alternatives), UseCase (OPTIONAL, "1" for case-sensitive)
-                </li>
-            </ul>
-            <p>
-                You can store questions, of any type, in several sheets, organized any way you like.
-            </p>
-        </section>
-        <section class="mb-10">
-            <h3 class="text-xl font-semibold mb-4">Still Unsure?</h3>
-            <p class="mb-2">If you're still confused, have any questions or suggestions, use the form below to contact me directly:</p>
-            <form
-                id="contact-form"
-                action="https://formspree.io/f/mpwdvrpq"
-                method="POST"
-                class="space-y-4"
-            >
-                <fieldset class="space-y-4 mt-8">
-                    <legend class="text-lg font-medium text-gray-900 mb-2">Contact Information</legend>
+                    <fieldset class="space-y-4 mt-8">
+                        <legend class="text-lg font-medium text-gray-900 mb-2">Contact Information</legend>
+                        <div>
+                            <label 
+                                for="first-name" 
+                                name="first-name"
+                                class="
+                                    block
+                                    mb-1
+                                    text-sm font-medium text-gray-700
+                                "
+                            >
+                                First Name
+                            </label>
+                            <input 
+                                type="text" 
+                                name="first-name" 
+                                id="first-name" 
+                                class="
+                                    block w-full
+                                    mt-1 px-3 py-2
+                                    bg-white
+                                    border border-gray-300 rounded-md shadow-sm
+                                    focus:outline-none focus:border-sky-500 sm:text-sm
+                                "
+                            >
+                        </div>
+                        <div>
+                            <label 
+                                for="last-name" 
+                                name="last-name"
+                                class="
+                                    block
+                                    mb-1
+                                    text-sm font-medium text-gray-700
+                                "
+                            >
+                                Last Name
+                            </label>
+                            <input 
+                                type="text" 
+                                name="last-name" 
+                                id="last-name" 
+                                class="
+                                    block w-full
+                                    mt-1 px-3 py-2
+                                    bg-white
+                                    border border-gray-300 rounded-md shadow-sm
+                                    focus:outline-none focus:border-sky-500 sm:text-sm
+                                "
+                            >
+                        </div>
+                        <div>
+                            <label 
+                                for="email" 
+                                name="email"
+                                class="
+                                    block
+                                    mb-1
+                                    text-sm font-medium text-gray-700
+                                "
+                            >
+                                Email
+                            </label>
+                            <input 
+                                type="email" 
+                                name="email" 
+                                id="email" 
+                                required
+                                class="
+                                    block w-full
+                                    mt-1 px-3 py-2
+                                    bg-white
+                                    border border-gray-300 rounded-md shadow-sm
+                                    focus:outline-none focus:border-sky-500 sm:text-sm
+                                "
+                            >
+                        </div>
+                    </fieldset>
+                    <fieldset class="space-y-4 mt-8">
+                        <legend class="text-lg font-medium text-gray-900 mb-2">Message</legend>
+                        <div>
+                            <label 
+                                for="subject" 
+                                name="subject"
+                                class="
+                                    block
+                                    mb-1
+                                    text-sm font-medium text-gray-700
+                                "
+                            >
+                                Subject
+                            </label>
+                            <input 
+                                type="text" 
+                                name="subject" 
+                                id="subject"
+                                required
+                                class="
+                                    block w-full
+                                    mt-1 px-3 py-2
+                                    bg-white
+                                    border border-gray-300 rounded-md shadow-sm
+                                    focus:outline-none focus:border-sky-500 sm:text-sm
+                                "
+                            >
+                        </div>
+                        <div>
+                            <label 
+                                for="message" 
+                                name="message"
+                                class="
+                                    block
+                                    mb-1
+                                    text-sm font-medium text-gray-700
+                                "
+                            >
+                                Your message:
+                            </label>    
+                            <textarea 
+                                name="message" 
+                                id="message" 
+                                rows="4"
+                                required
+                                class="
+                                    block w-full
+                                    px-3 py-2
+                                    bg-white
+                                    border border-gray-300 rounded-md shadow-sm
+                                    focus:outline-none focus:border-sky-500 sm:text-sm
+                                "
+                            ></textarea>
+                        </div>
+                    </fieldset>
                     <div>
-                        <label 
-                            for="first-name" 
-                            name="first-name"
+                        <button 
+                            type="submit"
                             class="
-                                block
-                                mb-1
-                                text-sm font-medium text-gray-700
+                                w-full flex justify-center
+                                py-2.5 px-4
+                                border border-transparent rounded-md shadow-sm
+                                text-sm font-medium text-white bg-sky-400
+                                hover:bg-sky-500 cursor-pointer
+                                transition-colors
                             "
                         >
-                            First Name
-                        </label>
-                        <input 
-                            type="text" 
-                            name="first-name" 
-                            id="first-name" 
-                            class="
-                                block w-full
-                                mt-1 px-3 py-2
-                                bg-white
-                                border border-gray-300 rounded-md shadow-sm
-                                focus:outline-none focus:border-sky-500 sm:text-sm
-                            "
-                        >
+                            Send
+                        </button>
                     </div>
-                    <div>
-                        <label 
-                            for="last-name" 
-                            name="last-name"
-                            class="
-                                block
-                                mb-1
-                                text-sm font-medium text-gray-700
-                            "
-                        >
-                            Last Name
-                        </label>
-                        <input 
-                            type="text" 
-                            name="last-name" 
-                            id="last-name" 
-                            class="
-                                block w-full
-                                mt-1 px-3 py-2
-                                bg-white
-                                border border-gray-300 rounded-md shadow-sm
-                                focus:outline-none focus:border-sky-500 sm:text-sm
-                            "
-                        >
-                    </div>
-                    <div>
-                        <label 
-                            for="email" 
-                            name="email"
-                            class="
-                                block
-                                mb-1
-                                text-sm font-medium text-gray-700
-                            "
-                        >
-                            Email
-                        </label>
-                        <input 
-                            type="email" 
-                            name="email" 
-                            id="email" 
-                            required
-                            class="
-                                block w-full
-                                mt-1 px-3 py-2
-                                bg-white
-                                border border-gray-300 rounded-md shadow-sm
-                                focus:outline-none focus:border-sky-500 sm:text-sm
-                            "
-                        >
-                    </div>
-                </fieldset>
-                <fieldset class="space-y-4 mt-8">
-                    <legend class="text-lg font-medium text-gray-900 mb-2">Message</legend>
-                    <div>
-                        <label 
-                            for="subject" 
-                            name="subject"
-                            class="
-                                block
-                                mb-1
-                                text-sm font-medium text-gray-700
-                            "
-                        >
-                            Subject
-                        </label>
-                        <input 
-                            type="text" 
-                            name="subject" 
-                            id="subject"
-                            required
-                            class="
-                                block w-full
-                                mt-1 px-3 py-2
-                                bg-white
-                                border border-gray-300 rounded-md shadow-sm
-                                focus:outline-none focus:border-sky-500 sm:text-sm
-                            "
-                        >
-                    </div>
-                    <div>
-                        <label 
-                            for="message" 
-                            name="message"
-                            class="
-                                block
-                                mb-1
-                                text-sm font-medium text-gray-700
-                            "
-                        >
-                            Your message:
-                        </label>    
-                        <textarea 
-                            name="message" 
-                            id="message" 
-                            rows="4"
-                            required
-                            class="
-                                block w-full
-                                px-3 py-2
-                                bg-white
-                                border border-gray-300 rounded-md shadow-sm
-                                focus:outline-none focus:border-sky-500 sm:text-sm
-                            "
-                        ></textarea>
-                    </div>
-                </fieldset>
-                <div>
-                    <button 
-                        type="submit"
-                        class="
-                            w-full flex justify-center
-                            py-2.5 px-4
-                            border border-transparent rounded-md shadow-sm
-                            text-sm font-medium text-white bg-sky-400
-                            hover:bg-sky-500 cursor-pointer
-                            transition-colors
-                        "
-                    >
-                        Send
-                    </button>
-                </div>
-                
-            </form> 
-        </section>
-    </main>
+                    
+                </form> 
+            </section>
+        </main>
+    </div>
     <site-footer>
         <div class="min-h-90 max-w-lg"></div>
     </site-footer>
