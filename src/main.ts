@@ -31,6 +31,85 @@ type Row = {
     UseCase?: string;
 };
 
+// -------- ToC mobile nav --------
+document.addEventListener('DOMContentLoaded', () => {
+    // Declarations
+    const $tocToggle = document.querySelector('#toc-toggle') as HTMLButtonElement || null;
+    const $tocClose = document.querySelector('#toc-close') as HTMLButtonElement || null;
+    const $pageNav = document.querySelector('#page-nav') as HTMLElement || null;
+
+    if ($pageNav) {
+        const tocLinks = $pageNav.querySelectorAll('.toc-link');
+
+        if ($tocToggle && $tocClose) {
+            // Open toc function
+            const openToc = () => {
+                if (!$pageNav) return;
+                $pageNav.classList.remove('-translate-x-full');
+                $pageNav.classList.add('translate-x-0');
+                $tocToggle.setAttribute('aria-expanded', 'true');
+
+                let overlay = document.querySelector('#toc-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'toc-overlay';
+                    overlay.className = 'fixed inset-0 z-30 bg-black opacity-0 transition-opacity duraiton-300 lg:hidden';
+                    document.body.appendChild(overlay);
+                    overlay.addEventListener('click', closeToc);
+                }
+                overlay.classList.remove('hidden');
+
+                // opacity transition for smoothness
+                requestAnimationFrame(() => {
+                    overlay!.classList.remove('opacity-0');
+                    overlay!.classList.add('opacity-50');
+                });
+
+                document.body.style.overflow = 'hidden';
+            };
+
+            // Close toc function
+            const closeToc = () => {
+                if (!$pageNav) return;
+                $pageNav.classList.add('-translate-x-full');
+                $pageNav.classList.remove('translate-x-0');
+                $tocToggle.setAttribute('aria-expanded', 'false');
+
+                const overlay = document.querySelector('#toc-overlay');
+                if (overlay) {
+                    overlay.classList.remove('opacity-50');
+                    overlay.classList.add('opacity-0');
+                    
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                    }, 300);
+                }
+                document.body.style.overflow = '';
+            };
+
+            $tocToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if ($pageNav && $pageNav.classList.contains('-translate-x-full')) {
+                    openToc();
+                } else {
+                    closeToc();
+                }
+            });
+
+            $tocClose.addEventListener('click', closeToc);
+
+            tocLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 1024) { // 1024px is Tailwind's lg
+                        closeToc();
+                    }
+                });
+            });
+        }
+    }
+});
+
+
 // -------- Download button helper functions --------
 const showDownloadBtn = () => {
     if ($btn) {
