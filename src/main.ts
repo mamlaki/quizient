@@ -20,6 +20,12 @@ const FADE_IN_DELAY = 10;
 const safeQuerySelector = <T extends HTMLElement>(selector: string): T | null => document.querySelector(selector) as T | null;
 const safeQuerySelectorAll = <T extends HTMLElement>(selector: string): NodeListOf<T> => document.querySelectorAll(selector) as NodeListOf<T>;
 
+// -------- Types --------
+type LogEntry = {
+    message: string;
+    callback?: () => void;
+    logType?: 'info' | 'error';
+}
 
 
 // ---------------- Table of Contents Class ----------------
@@ -126,12 +132,129 @@ class TableOfContents {
 // ---------------- END OF: Table of Contents Class ----------------
 
 
+// ---------------- UI Controller Class ----------------
+class UIController {
+    private btn: HTMLButtonElement | null;
+    private log: HTMLElement | null;
+    
+    constructor() {
+        this.btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
+        this.log = safeQuerySelector<HTMLElement>('#log');
+    }
 
-// DOM Declarations
-const $file = safeQuerySelector<HTMLInputElement>('#file-input');
-const $log = safeQuerySelector<HTMLElement>('#log');
-const $btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
-const $dropZone = safeQuerySelector<HTMLElement>('#drop-zone');
+    showDownloadBtn(): void {
+        if (!this.btn) return;
+        
+        this.btn.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            this.btn!.classList.remove('opacity-0');
+            this.btn!.classList.add('opacity-100');
+        }); 
+    }
+
+    hideDownloadBtn(): void {
+        if (!this.btn) return;
+
+        this.btn.classList.remove('opacity-100');
+        this.btn.classList.add('opacity-0');
+        setTimeout(() => {
+            this.btn!.classList.add('hidden');
+        }, TRANSITION_DURATION);
+    }
+
+    showLog(): void {
+        this.log?.classList.remove('hidden');
+    }
+
+    clearLog(): void {
+        if (this.log) {
+            this.log.innerHTML = '';
+        }
+    }
+
+    appendLog(message: string): HTMLDivElement | null {
+        if (!this.log) return null;
+        
+        this.showLog();
+        const entry = document.createElement('div');
+        entry.className = 'log-entry flex flex-row-reverse justify-end items-center gap-2 opacity-0 transition-opacity duration-500 mb-2';
+
+        setTimeout(() => {
+            entry.classList.add('opacity-100');
+        }, FADE_IN_DELAY);
+
+        const loadingIcon = createElement(LoaderCircle, { size: 18, class: 'log-loading-icon' });
+        loadingIcon.classList.add('animate-spin', 'text-sky-400');
+
+        const logText = document.createElement('span');
+        logText.textContent = message;
+
+        entry.appendChild(loadingIcon);
+        entry.append(logText);
+        this.log.appendChild(entry);
+
+        return entry;
+    }
+
+}
+// ---------------- END OF: UI Controller Class ----------------
+
+
+// ---------------- Log Queue Class ----------------
+class LogQueue {
+    private queue: LogEntry[] = [];
+    private isProcessing = false;
+    private ui: UIController;
+
+    constructor(ui: UIController) {
+        this.ui = ui;
+    }
+
+    add(message: string, callback?: () => void, logType: 'info' | 'error' = 'info'): void {
+        this.queue.push({ message, callback, logType });
+        this.process();
+    }
+
+    clear(): void {
+        this.queue = [];
+        this.isProcessing = false;
+    }
+
+    private process(): void {
+        if (this.isProcessing || this.queue.length === 0) return;
+
+        this.isProcessing = true;
+        const { message, callback, logType = 'info' } = this.queue.shift()!;
+        const entry = this.ui.appendLog(message);
+
+        if (!entry) {
+            this.isProcessing = false;
+            callback?.();
+            this.process();
+            return;
+        }
+
+        setTimeout(() => {
+            this.updateLogIcon(entry, logType);
+            this.isProcessing = false;
+            callback?.();
+            this.process();
+        }, LOG_QUEUE_DELAY);
+    }
+
+    private updateLogIcon(entry: HTMLDivElement, logType: 'info' | 'error'): void {
+        const loadingIcon = entry.querySelector('.log-loading-icon');
+        if (!loadingIcon) return;
+
+        const icon = logType === 'error'
+            ? createElement(CircleX, { size: 18, class: 'log-icon-updated text-rose-600' })
+            : createElement(CircleCheck, { size: 18, class: 'log-icon-updated text-green-600' });
+
+        loadingIcon.replaceWith(icon);
+    }
+}
+// ---------------- END OF: Log Queue Class ----------------
+
 
 // Final XML output container
 let xmlString = "";
@@ -149,116 +272,6 @@ type Row = {
     UseCase?: string;
 };
 
-// Table of Contents Init
-document.addEventListener('DOMContentLoaded', () => {
-    const toc = new TableOfContents();
-    toc.init();
-})
-
-
-// -------- Download button helper functions --------
-const showDownloadBtn = () => {
-    if ($btn) {
-        $btn.classList.remove('hidden');
-        requestAnimationFrame(() => {
-            $btn.classList.remove('opacity-0');
-            $btn.classList.add('opacity-100');
-        });
-    }
-}
-
-const hideDownloadBtn = () => {
-    if ($btn) {
-        $btn.classList.remove('opacity-100');
-        $btn.classList.add('opacity-0');
-        setTimeout(() => {
-            $btn.classList.add('hidden');
-        }, TRANSITION_DURATION);
-    }
-}
-
-// -------- Log helper functions --------
-const showLog = () => {
-    if ($log) {
-        $log.classList.remove('hidden');
-    }
-}
-
-const clearLog = () =>  {
-    if ($log) {
-        $log.innerHTML = '';
-    }
-}
-
-const appendLog = (message: string) => {
-    if (!$log) return null;
-    showLog();
-    const entry = document.createElement('div');
-    entry.className = 'log-entry flex flex-row-reverse justify-end items-center gap-2 opacity-0 transition-opacity duration-500 mb-2';
-    setTimeout(() => {
-        entry.classList.add('opacity-100');
-    }, FADE_IN_DELAY);
-    // Loading
-    const loadingIcon = createElement(LoaderCircle, { size: 18, class: 'log-loading-icon' });
-    loadingIcon.classList.add('animate-spin', 'text-sky-400');
-
-    entry.appendChild(loadingIcon);
-
-    // Log text
-    const text = document.createElement('span');
-    text.textContent = message;
-    entry.appendChild(text);
-
-    $log.appendChild(entry);
-    return entry;
-}
-// Smoother log output (especially for smaller files)
-let logQueue: { message: string; callback?: () => void; logType?: 'info' | 'error' }[] = [];
-let isProcessingLog = false
-
-function processLogQueue() {
-    if (isProcessingLog || logQueue.length === 0) return;
-
-    isProcessingLog = true;
-    const { message, callback, logType } = logQueue.shift()!;
-    const entry = appendLog(message);
-
-    if (!entry) {
-        isProcessingLog = false;
-        if (callback) callback();
-        processLogQueue();
-        return;
-    }
-
-    setTimeout(() => {
-        const loadingIcon = entry.querySelector('.log-loading-icon');
-        if (loadingIcon) {
-            if (logType === 'error') {
-                const errorIcon = createElement(CircleX, { size: 18, class: 'log-icon-updated' })
-                errorIcon.classList.add('text-rose-600');
-                loadingIcon.replaceWith(errorIcon);
-                console.log('error');
-            } else {
-                const check = createElement(CircleCheck, { size: 18, class: 'log-icon-updated' });
-                check.classList.add('text-green-600');
-                loadingIcon.replaceWith(check);
-                console.log('check');
-            }
-        }
-        isProcessingLog = false;
-        if (callback) callback();
-        processLogQueue();
-    }, LOG_QUEUE_DELAY);
-}
-
-const queueLog = (message: string, callback?: () => void, logType: 'info' | 'error' = 'info') => {
-    if (!$log) {
-        if (callback) callback();
-        return;
-    }
-    logQueue.push({ message, callback, logType });
-    processLogQueue();
-}
 
 // -------- Create Moodle XML question object from a row --------
 function rowToQuestion(row: Row) {
@@ -333,157 +346,174 @@ function rowToQuestion(row: Row) {
         };
     }
 }
+// -------- END OF: rowToQuestion --------
 
 
-// -------- When a user adds a file --------
-if ($file && $dropZone && $btn && $log) {
-    $file.addEventListener('change', async () => {
-        // Reset UI elements
-        clearLog();
-        logQueue = [];
-        isProcessingLog = false;
-    
-        hideDownloadBtn();
-    
-        // Grab the first file (if multiple files were uploaded and if it exists)
-        const file = $file.files?.[0];
-        if (!file) return; 
+
+// ---------------- Main App Init ----------------
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize ccomponents using classes
+    const toc = new TableOfContents(); // Table of Contents class instance
+    toc.init();
+    const ui = new UIController(); // UI Controller class instance
+    const logQueue = new LogQueue(ui); // Log queue class instance
+
+    // DOM declarations
+    const $file = safeQuerySelector<HTMLInputElement>('#file-input');
+    const $btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
+    const $dropZone = safeQuerySelector<HTMLElement>('#drop-zone');
+
+    // -------- When a user adds a file --------
+    if ($file && $dropZone && $btn) {
+        $file.addEventListener('change', async () => {
+            // Reset UI elements
+            ui.clearLog();
+            logQueue.clear();
+            ui.hideDownloadBtn();
         
-        queueLog(`Loading: ${file.name} ...`); // UI update
-        
-        // UI updates based on file type
-        const fileTypes: Record<string, string> = {
-            'text/csv': 'CSV',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
-            'application/vnd.ms-excel': 'XLS',
-            'application/vnd.oasis.opendocument.spreadsheet': 'ODS'
-        };
-    
-        let fileTypeDesc = fileTypes[file.type];
-    
-        if (fileTypeDesc) {
-            console.log(`Processing ${fileTypeDesc} file: ${file.name}...`);
-            queueLog(`Processing ${fileTypeDesc} file: ${file.name}...`);
-        } else if (file.type === '' || file.type === 'application/octet-stream') {
-            fileTypeDesc = 'Unknown';
-            console.log(`Processing file (unknown, type): ${file.name}...`);
-            queueLog(`Processing file (unknown, type): ${file.name}...`);
-        } else {
-            console.log(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
-            queueLog(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`, undefined, 'error');
-            hideDownloadBtn();
-            return;
-        }
-    
-        // Parse the file
-        try {
-            const buffer = await file.arrayBuffer();
-            const wb = read(buffer, {type: 'array'});
-    
-            let allQuestions : any[] = [];
-            let totalRowsProcessed = 0;
-    
-            // Loop through each sheet in file
-            for (const sheetName of wb.SheetNames) {
-                console.log(`Processing sheet: ${sheetName}`);
-    
-                const sheet = wb.Sheets[sheetName]; // grab sheet
-                const rows = utils.sheet_to_json<Row>( // convert current sheet to JSON row objects
-                    sheet, { raw: false }
-                );
-                totalRowsProcessed += rows.length;
-    
-                const questionsFromSheet = rows.map(rowToQuestion).filter(question => question !== null);
-    
-                allQuestions = allQuestions.concat(questionsFromSheet);
-    
-                if (rows.length > 0) {
-                    console.log(`Found ${rows.length} rows in sheet "${sheetName}", generated ${questionsFromSheet.length} questions.`);
-                }
-            }
-    
-            // Check for no data
-            if (totalRowsProcessed === 0) {
-                queueLog(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`, undefined, 'error');
-                hideDownloadBtn();
-                return;
-            }
-    
-            // Check for valid questions
-            if (allQuestions.length === 0 && totalRowsProcessed > 0) {
-                queueLog(`No valid questions could be generated from ${file.name}.`, undefined, 'error');
-                hideDownloadBtn();
-                return;
-            }
-    
-            // Build XML 
-            const builder = new XMLBuilder({ 
-                ignoreAttributes: false, 
-                attributeNamePrefix: '@_', 
-                format: true, 
-                cdataPropName: '#cdata' 
-            });
-            xmlString  = builder.build({ quiz: { question: allQuestions }});
+            // Grab the first file (if multiple files were uploaded and if it exists)
+            const file = $file.files?.[0];
+            if (!file) return; 
             
-            queueLog(`Generated ${allQuestions.length} questions`, () => {
-                // Note if any rows were skipped/invalid
-                if (allQuestions.length < totalRowsProcessed) {
-                    queueLog(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`);
+            logQueue.add(`Loading: ${file.name} ...`); // UI update
+            
+            // UI updates based on file type
+            const fileTypes: Record<string, string> = {
+                'text/csv': 'CSV',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+                'application/vnd.ms-excel': 'XLS',
+                'application/vnd.oasis.opendocument.spreadsheet': 'ODS'
+            };
+        
+            let fileTypeDesc = fileTypes[file.type];
+        
+            if (fileTypeDesc) {
+                console.log(`Processing ${fileTypeDesc} file: ${file.name}...`);
+                logQueue.add(`Processing ${fileTypeDesc} file: ${file.name}...`);
+            } else if (file.type === '' || file.type === 'application/octet-stream') {
+                fileTypeDesc = 'Unknown';
+                logQueue.add(`Processing file (unknown, type): ${file.name}...`);
+                logQueue.add(`Processing file (unknown, type): ${file.name}...`);
+            } else {
+                logQueue.add(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
+                logQueue.add(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`, undefined, 'error');
+                ui.hideDownloadBtn();
+                return;
+            }
+        
+            // Parse the file
+            try {
+                const buffer = await file.arrayBuffer();
+                const wb = read(buffer, {type: 'array'});
+        
+                let allQuestions : any[] = [];
+                let totalRowsProcessed = 0;
+        
+                // Loop through each sheet in file
+                for (const sheetName of wb.SheetNames) {
+                    console.log(`Processing sheet: ${sheetName}`);
+        
+                    const sheet = wb.Sheets[sheetName]; // grab sheet
+                    const rows = utils.sheet_to_json<Row>( // convert current sheet to JSON row objects
+                        sheet, { raw: false }
+                    );
+                    totalRowsProcessed += rows.length;
+        
+                    const questionsFromSheet = rows.map(rowToQuestion).filter(question => question !== null);
+        
+                    allQuestions = allQuestions.concat(questionsFromSheet);
+        
+                    if (rows.length > 0) {
+                        console.log(`Found ${rows.length} rows in sheet "${sheetName}", generated ${questionsFromSheet.length} questions.`);
+                    }
                 }
-                // Show the download button 
-                showDownloadBtn();
-            }); // UI update    
-    
-        } catch(error) {
-            console.error(`Error processing ${file.name}`, error);
-            queueLog(`Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`);
-        }
-    });
-    
-    
-    // -------- Drop zone functionality --------
-    if ($dropZone && $file) {
-        // Highlight style when a file is hovering above
-        $dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            $dropZone.classList.add('bg-sky-50');
-        });
-    
-        // Remove hovering above styles
-        $dropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            $dropZone.classList.remove('bg-sky-50');
-        }); 
-    
-        // Actual functionality
-        $dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            $dropZone.classList.remove('bg-sky-50');
-            const files = (e.dataTransfer?.files || []);
-            if (files.length > 0) {
-                // @ts-expect-error
-                $file.files = files;
-                $file.dispatchEvent(new Event('change')); // triggers the change event listener above (aka the file processing)
+        
+                // Check for no data
+                if (totalRowsProcessed === 0) {
+                    logQueue.add(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`, undefined, 'error');
+                    ui.hideDownloadBtn();
+                    return;
+                }
+        
+                // Check for valid questions
+                if (allQuestions.length === 0 && totalRowsProcessed > 0) {
+                    logQueue.add(`No valid questions could be generated from ${file.name}.`, undefined, 'error');
+                    ui.hideDownloadBtn();
+                    return;
+                }
+        
+                // Build XML 
+                const builder = new XMLBuilder({ 
+                    ignoreAttributes: false, 
+                    attributeNamePrefix: '@_', 
+                    format: true, 
+                    cdataPropName: '#cdata' 
+                });
+                xmlString  = builder.build({ quiz: { question: allQuestions }});
+                
+                logQueue.add(`Generated ${allQuestions.length} questions`, () => {
+                    // Note if any rows were skipped/invalid
+                    if (allQuestions.length < totalRowsProcessed) {
+                        logQueue.add(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`);
+                    }
+                    // Show the download button 
+                    ui.showDownloadBtn();
+                }); // UI update    
+        
+            } catch(error) {
+                console.error(`Error processing ${file.name}`, error);
+                logQueue.add(`Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`);
             }
         });
-    
-        $dropZone.addEventListener('click', () => {
-            $file.click();
-        })
+        
+        
+        // -------- Drop zone functionality --------
+        if ($dropZone && $file) {
+            // Highlight style when a file is hovering above
+            $dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                $dropZone.classList.add('bg-sky-50');
+            });
+        
+            // Remove hovering above styles
+            $dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                $dropZone.classList.remove('bg-sky-50');
+            }); 
+        
+            // Actual functionality
+            $dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                $dropZone.classList.remove('bg-sky-50');
+                const files = (e.dataTransfer?.files || []);
+                if (files.length > 0) {
+                    // @ts-expect-error
+                    $file.files = files;
+                    $file.dispatchEvent(new Event('change')); // triggers the change event listener above (aka the file processing)
+                }
+            });
+        
+            $dropZone.addEventListener('click', () => {
+                $file.click();
+            })
+        }
+        
+        
+        // -------- Download button click functionality --------
+        $btn.addEventListener('click', () => {
+            const blob = new Blob([xmlString], { type: 'text/xml' }); // create blob 
+            const url = URL.createObjectURL(blob); // temp blob url
+        
+            // Create hidden link that is auto clicked which downloads the file
+            Object.assign(document.createElement('a'), {
+                href: url,
+                download: 'questions.xml'
+            }).click();
+        
+            URL.revokeObjectURL(url); // revokes the temp blob url
+        });
     }
-    
-    
-    // -------- Download button click functionality --------
-    $btn.addEventListener('click', () => {
-        const blob = new Blob([xmlString], { type: 'text/xml' }); // create blob 
-        const url = URL.createObjectURL(blob); // temp blob url
-    
-        // Create hidden link that is auto clicked which downloads the file
-        Object.assign(document.createElement('a'), {
-            href: url,
-            download: 'questions.xml'
-        }).click();
-    
-        URL.revokeObjectURL(url); // revokes the temp blob url
-    });
-}
+})
+
+
+
