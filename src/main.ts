@@ -27,6 +27,20 @@ type LogEntry = {
     logType?: 'info' | 'error';
 }
 
+// Row type declaration
+type Row = {
+    Type: string;
+    Title: string;
+    Question: string;
+    OptionA?: string;
+    OptionB?: string;
+    OptionC?: string;
+    OptionD?: string;
+    Correct?: string;
+    UseCase?: string;
+};
+
+
 
 // ---------------- Table of Contents Class ----------------
 class TableOfContents {
@@ -132,6 +146,7 @@ class TableOfContents {
 // ---------------- END OF: Table of Contents Class ----------------
 
 
+
 // ---------------- UI Controller Class ----------------
 class UIController {
     private btn: HTMLButtonElement | null;
@@ -200,6 +215,7 @@ class UIController {
 // ---------------- END OF: UI Controller Class ----------------
 
 
+
 // ---------------- Log Queue Class ----------------
 class LogQueue {
     private queue: LogEntry[] = [];
@@ -256,97 +272,207 @@ class LogQueue {
 // ---------------- END OF: Log Queue Class ----------------
 
 
-// Final XML output container
-let xmlString = "";
 
-// Row type declaration
-type Row = {
-    Type: string;
-    Title: string;
-    Question: string;
-    OptionA?: string;
-    OptionB?: string;
-    OptionC?: string;
-    OptionD?: string;
-    Correct?: string;
-    UseCase?: string;
-};
+// ---------------- File Processor Class ----------------
+class FileProcessor {
+    private ui: UIController;
+    private logQueue: LogQueue;
+    private xmlString = ""; // Final XML output container
 
-
-// -------- Create Moodle XML question object from a row --------
-function rowToQuestion(row: Row) {
-    // Shared between multiplechoice and truefalse questions
-    const sharedElements = {
-        name: { text: row.Title },
-        questiontext: { '@_format': 'html', text: { '#cdata': row.Question } },
+    // File types
+    private readonly supportedFileTypes: Record<string, string> = {
+        'text/csv': 'CSV',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+        'application/vnd.ms-excel': 'XLS',
+        'application/vnd.oasis.opendocument.spreadsheet': 'ODS'
     };
 
-    const questionType = row.Type?.toLowerCase(); // what is the question type/does it exist
+    constructor(ui: UIController, logQueue: LogQueue) {
+        this.ui = ui;
+        this.logQueue = logQueue;
+    }
 
-    if (questionType === 'truefalse') {
-        // True/false question type
-        const isCorrectTrue = row.Correct?.toLowerCase() === 'true';
+    async processFile(file: File): Promise<void> {
+        this.resetUI();
 
-        return {
-            ...sharedElements,
-            '@_type': 'truefalse',
-            answer: [
-                {
-                    '@_fraction': isCorrectTrue? '100' : '0',
-                    '@_format': 'moodle_auto_format',
-                    text: 'true'
-                },
-                {
-                    '@_fraction': !isCorrectTrue? '100' : '0',
-                    '@_format': 'moodle_auto_format',
-                    text: 'false'
-                }
-            ]
-        };
-    } else if (questionType === 'shortanswer') {
-        // Short answer question type
-        const useCase = row.UseCase === '1' ? 1 : 0;
-
-        // Allow several correct answers
-        const altKeys = Object.keys(row).filter(key => /^Correct\d+$/.test(key)); 
-
-        const alternativeAnswers = altKeys.map(key => (row as any)[key]?.trim()).filter(val => val);
-
-        const answers = alternativeAnswers.map(answer => ({
-            '@_fraction': '100',
-            '@_format': 'moodle_auto_format',
-            text: answer
-        }));
-
-        return {
-            ...sharedElements,
-            '@_type': 'shortanswer',
-            usecase: useCase,
-            answer: answers
-        };
-    } else {
-        // Default to multiplechoice for now if truefalse isn't being used
-        // Build answers list
-        const answers = ['A', 'B', 'C', 'D'].flatMap(label => {
-            const text = (row as any)[`Option${label}`];
-            if (!text) {
-                return [];
-            }
-            return [{
-                '@_fraction': row.Correct?.toUpperCase().includes(label) ? '100' : '0',
-                text
-            }]
-        });
+        this.logQueue.add(`Loading: ${file.name}`);
         
-        // Return a Moodle XML question object
+        const fileTypeInfo = this.validateFileType(file);
+        if (!fileTypeInfo.isValid) {
+            this.logQueue.add(fileTypeInfo.errorMessage!, undefined, 'error');
+            this.ui.hideDownloadBtn();
+            return;
+        }
+
+        this.logQueue.add(`Processing ${fileTypeInfo.description} file: ${file.name}...`);
+
+        try {
+            const result = await this.parseFile(file); // parse the file
+            this.generateXML(result, file.name); // generate the xml
+        } catch (error) {
+            console.error(`Error processing ${file.name}: `, error);
+            this.logQueue.add(`Error processing ${file.name} (${fileTypeInfo.description}). Open the console for more information.`);
+        }
+
+    }
+
+    getXMLString(): string {
+        return this.xmlString;
+    }
+
+    private resetUI(): void {
+        this.ui.clearLog();
+        this.logQueue.clear();
+        this.ui.hideDownloadBtn();
+    }
+
+    private validateFileType(file: File): { isValid: boolean; description?: string; errorMessage?: string } {
+        const fileTypeDesc = this.supportedFileTypes[file.type];
+
+        if (fileTypeDesc) {
+            return { isValid: true, description: fileTypeDesc};
+        }
+
+        if (file.type === '' || file.type === 'application/octet-stream') { // Unknown file
+            return { isValid: true, description: 'Unknown' };
+        }
+
         return {
-            ...sharedElements,
-            '@_type': 'multichoice',
-            answer: answers
+            isValid: false,
+            errorMessage: `Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`
         };
     }
+
+    private async parseFile(file: File): Promise<{ questions: any[]; totalRows: number }> {
+        const buffer = await file.arrayBuffer();
+        const wb = read(buffer, { type: 'array' });
+
+        let allQuestions: any[] = [];
+        let totalRowsProcessed = 0;
+
+        for (const sheetName of wb.SheetNames) {
+            console.log(`Processing sheet: ${sheetName}`);
+
+            const sheet = wb.Sheets[sheetName];
+            const rows = utils.sheet_to_json<Row>(sheet, { raw: false });
+            totalRowsProcessed += rows.length;
+
+            const questionsFromSheet = rows.map(row => this.rowToQuestion(row)).filter(question => question !== null);
+
+            allQuestions = allQuestions.concat(questionsFromSheet);
+
+            if (rows.length > 0) {
+                console.log(`Found ${rows.length} rows in sheet "${sheetName}", generated ${questionsFromSheet.length} questions.`);
+            }
+        }
+
+        return { questions: allQuestions, totalRows: totalRowsProcessed };
+    }
+
+    private generateXML(result: { questions: any[]; totalRows: number}, fileName: string): void {
+        const { questions: allQuestions, totalRows: totalRowsProcessed } = result;
+
+        // Validation checks
+        if (totalRowsProcessed === 0) { // No data in rows
+            this.logQueue.add(`No data found in any sheets of ${fileName}. Make sure sheets have headers and content.`, undefined, 'error');
+            this.ui.hideDownloadBtn();
+            return;
+        }
+
+        if (allQuestions.length === 0 && totalRowsProcessed > 0) { // No valid questions found within rows
+            this.logQueue.add(`No valid questions could be generated from ${fileName}.`, undefined, 'error');
+            this.ui.hideDownloadBtn();
+            return;
+        }
+
+        // Build XML
+        const builder = new XMLBuilder({
+            ignoreAttributes: false,
+            attributeNamePrefix: '@_',
+            format: true,
+            cdataPropName: '#cdata'
+        });
+
+        this.xmlString = builder.build({ quiz: {question: allQuestions } });
+
+        this.logQueue.add(`Generated ${allQuestions.length} questions`, () => {
+            if (allQuestions.length < totalRowsProcessed) {
+                this.logQueue.add(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors cross all sheets).`);
+            }
+            this.ui.showDownloadBtn();
+        });
+    }
+
+    private rowToQuestion(row: Row) {
+        const sharedElements = {
+            name: { text: row.Title },
+            questiontext: { '@_format': 'html', text: { '#cdata': row.Question } }
+        };
+
+        const questionType = row.Type?.toLowerCase(); // what is the question type/does it exist?
+
+        if (questionType === 'truefalse') { // True/false question type
+            const isCorrectTrue = row.Correct?.toLowerCase() === 'true';
+            return {
+                ...sharedElements,
+                '@_type': 'truefalse',
+                answer: [
+                    {
+                        '@_fraction': isCorrectTrue? '100' : '0',
+                        '@_format': 'moodle_auto_format',
+                        text: 'true'
+                    },
+                    {
+                        '@_fraction': !isCorrectTrue? '100' : '0',
+                        '@_format': 'moodle_auto_format',
+                        text: 'false'
+                    }
+                ]
+            };
+        } else if (questionType === 'shortanswer') {
+             // Short answer question type
+            const useCase = row.UseCase === '1' ? 1 : 0;
+            // Allow several correct answers
+            const altKeys = Object.keys(row).filter(key => /^Correct\d+$/.test(key)); 
+            const alternativeAnswers = altKeys.map(key => (row as any)[key]?.trim()).filter(val => val);
+
+            const answers = alternativeAnswers.map(answer => ({
+                '@_fraction': '100',
+                '@_format': 'moodle_auto_format',
+                text: answer
+            }));
+
+            return {
+                ...sharedElements,
+                '@_type': 'shortanswer',
+                usecase: useCase,
+                answer: answers
+            };
+        } else {
+            // Default to multiplechoice 
+            // Build answers list
+            const answers = ['A', 'B', 'C', 'D'].flatMap(label => {
+                const text = (row as any)[`Option${label}`];
+                if (!text) {
+                    return [];
+                }
+                return [{
+                    '@_fraction': row.Correct?.toUpperCase().includes(label) ? '100' : '0',
+                    text
+                }]
+            });
+            
+            // Return a Moodle XML question object
+            return {
+                ...sharedElements,
+                '@_type': 'multichoice',
+                answer: answers
+            };
+        }
+    }
+
 }
-// -------- END OF: rowToQuestion --------
+// ---------------- END OF: File Processor Class ----------------
 
 
 
@@ -357,151 +483,55 @@ document.addEventListener('DOMContentLoaded', () => {
     toc.init();
     const ui = new UIController(); // UI Controller class instance
     const logQueue = new LogQueue(ui); // Log queue class instance
+    const fileProcessor = new FileProcessor(ui, logQueue);
 
     // DOM declarations
     const $file = safeQuerySelector<HTMLInputElement>('#file-input');
     const $btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
     const $dropZone = safeQuerySelector<HTMLElement>('#drop-zone');
 
-    // -------- When a user adds a file --------
+    
     if ($file && $dropZone && $btn) {
+        // -------- When a user adds a file --------
         $file.addEventListener('change', async () => {
-            // Reset UI elements
-            ui.clearLog();
-            logQueue.clear();
-            ui.hideDownloadBtn();
-        
-            // Grab the first file (if multiple files were uploaded and if it exists)
             const file = $file.files?.[0];
-            if (!file) return; 
-            
-            logQueue.add(`Loading: ${file.name} ...`); // UI update
-            
-            // UI updates based on file type
-            const fileTypes: Record<string, string> = {
-                'text/csv': 'CSV',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
-                'application/vnd.ms-excel': 'XLS',
-                'application/vnd.oasis.opendocument.spreadsheet': 'ODS'
-            };
-        
-            let fileTypeDesc = fileTypes[file.type];
-        
-            if (fileTypeDesc) {
-                console.log(`Processing ${fileTypeDesc} file: ${file.name}...`);
-                logQueue.add(`Processing ${fileTypeDesc} file: ${file.name}...`);
-            } else if (file.type === '' || file.type === 'application/octet-stream') {
-                fileTypeDesc = 'Unknown';
-                logQueue.add(`Processing file (unknown, type): ${file.name}...`);
-                logQueue.add(`Processing file (unknown, type): ${file.name}...`);
-            } else {
-                logQueue.add(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`);
-                logQueue.add(`Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`, undefined, 'error');
-                ui.hideDownloadBtn();
-                return;
-            }
-        
-            // Parse the file
-            try {
-                const buffer = await file.arrayBuffer();
-                const wb = read(buffer, {type: 'array'});
-        
-                let allQuestions : any[] = [];
-                let totalRowsProcessed = 0;
-        
-                // Loop through each sheet in file
-                for (const sheetName of wb.SheetNames) {
-                    console.log(`Processing sheet: ${sheetName}`);
-        
-                    const sheet = wb.Sheets[sheetName]; // grab sheet
-                    const rows = utils.sheet_to_json<Row>( // convert current sheet to JSON row objects
-                        sheet, { raw: false }
-                    );
-                    totalRowsProcessed += rows.length;
-        
-                    const questionsFromSheet = rows.map(rowToQuestion).filter(question => question !== null);
-        
-                    allQuestions = allQuestions.concat(questionsFromSheet);
-        
-                    if (rows.length > 0) {
-                        console.log(`Found ${rows.length} rows in sheet "${sheetName}", generated ${questionsFromSheet.length} questions.`);
-                    }
-                }
-        
-                // Check for no data
-                if (totalRowsProcessed === 0) {
-                    logQueue.add(`No data found in any sheets of ${file.name}. Make sure sheets have headers and content.`, undefined, 'error');
-                    ui.hideDownloadBtn();
-                    return;
-                }
-        
-                // Check for valid questions
-                if (allQuestions.length === 0 && totalRowsProcessed > 0) {
-                    logQueue.add(`No valid questions could be generated from ${file.name}.`, undefined, 'error');
-                    ui.hideDownloadBtn();
-                    return;
-                }
-        
-                // Build XML 
-                const builder = new XMLBuilder({ 
-                    ignoreAttributes: false, 
-                    attributeNamePrefix: '@_', 
-                    format: true, 
-                    cdataPropName: '#cdata' 
-                });
-                xmlString  = builder.build({ quiz: { question: allQuestions }});
-                
-                logQueue.add(`Generated ${allQuestions.length} questions`, () => {
-                    // Note if any rows were skipped/invalid
-                    if (allQuestions.length < totalRowsProcessed) {
-                        logQueue.add(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors across all sheets).`);
-                    }
-                    // Show the download button 
-                    ui.showDownloadBtn();
-                }); // UI update    
-        
-            } catch(error) {
-                console.error(`Error processing ${file.name}`, error);
-                logQueue.add(`Error processing ${file.name} (${fileTypeDesc}). Open the console for more information.`);
+            if (!file) return;
+
+            await fileProcessor.processFile(file);
+        });
+
+        // -------- Drop zone functionality --------
+        // Highlight style when a file is hovering above
+        $dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            $dropZone.classList.add('bg-sky-50');
+        });
+    
+        // Remove hovering above styles
+        $dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            $dropZone.classList.remove('bg-sky-50');
+        }); 
+    
+        // Actual functionality
+        $dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            $dropZone.classList.remove('bg-sky-50');
+            const files = (e.dataTransfer?.files || []);
+            if (files.length > 0) {
+                // @ts-expect-error
+                $file.files = files;
+                $file.dispatchEvent(new Event('change')); // triggers the change event listener above (aka the file processing)
             }
         });
-        
-        
-        // -------- Drop zone functionality --------
-        if ($dropZone && $file) {
-            // Highlight style when a file is hovering above
-            $dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                $dropZone.classList.add('bg-sky-50');
-            });
-        
-            // Remove hovering above styles
-            $dropZone.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                $dropZone.classList.remove('bg-sky-50');
-            }); 
-        
-            // Actual functionality
-            $dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                $dropZone.classList.remove('bg-sky-50');
-                const files = (e.dataTransfer?.files || []);
-                if (files.length > 0) {
-                    // @ts-expect-error
-                    $file.files = files;
-                    $file.dispatchEvent(new Event('change')); // triggers the change event listener above (aka the file processing)
-                }
-            });
-        
-            $dropZone.addEventListener('click', () => {
-                $file.click();
-            })
-        }
-        
+    
+        $dropZone.addEventListener('click', () => {
+            $file.click();
+        })
         
         // -------- Download button click functionality --------
         $btn.addEventListener('click', () => {
-            const blob = new Blob([xmlString], { type: 'text/xml' }); // create blob 
+            const blob = new Blob([fileProcessor.getXMLString()], { type: 'text/xml' }); // create blob 
             const url = URL.createObjectURL(blob); // temp blob url
         
             // Create hidden link that is auto clicked which downloads the file
@@ -514,6 +544,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 })
-
-
-
