@@ -20,6 +20,113 @@ const FADE_IN_DELAY = 10;
 const safeQuerySelector = <T extends HTMLElement>(selector: string): T | null => document.querySelector(selector) as T | null;
 const safeQuerySelectorAll = <T extends HTMLElement>(selector: string): NodeListOf<T> => document.querySelectorAll(selector) as NodeListOf<T>;
 
+
+
+// ---------------- Table of Contents Class ----------------
+class TableOfContents {
+    private tocToggle: HTMLButtonElement | null;
+    private tocClose: HTMLButtonElement | null;
+    private pageNav: HTMLElement | null;
+    private tocLinks: NodeListOf<HTMLAnchorElement>;
+
+    constructor() {
+        this.tocToggle = safeQuerySelector<HTMLButtonElement>('#toc-toggle');
+        this.tocClose = safeQuerySelector<HTMLButtonElement>('#toc-close');
+        this.pageNav = safeQuerySelector<HTMLElement>('#page-nav');
+        this.tocLinks = safeQuerySelectorAll<HTMLAnchorElement>('.toc-link');
+    }
+
+    init(): void {
+        if (!this.pageNav || !this.tocToggle || !this.tocClose) return;
+        this.setupEventListeners();
+    }
+
+    private setupEventListeners(): void {
+        if (!this.tocToggle || !this.tocClose) return;
+        this.tocToggle.addEventListener('click', this.handleToggleClick.bind(this));
+        this.tocClose.addEventListener('click', this.closeToc.bind(this));
+
+        this.tocLinks.forEach(link => {
+            link.addEventListener('click', this.handleLinkClick.bind(this));
+        });
+    }
+
+    private handleToggleClick(e: Event): void {
+        e.stopPropagation();
+        if (this.pageNav?.classList.contains('-translate-x-full')) {
+            this.openToc();
+        } else {
+            this.closeToc();
+        }
+    }
+
+    private handleLinkClick(): void {
+        if (window.innerWidth < TAILWIND_LG_BREAKPOINT) {
+            this.closeToc();
+        }
+    }
+
+    private openToc(): void {
+        if (!this.pageNav || !this.tocToggle) return;
+
+        this.pageNav.classList.remove('-translate-x-full');
+        this.pageNav.classList.add('translate-x-0');
+        this.tocToggle.setAttribute('aria-expanded', 'true');
+
+        this.showOverlay();
+        document.body.style.overflow = 'hidden';
+    }
+
+    private closeToc(): void {
+        if (!this.pageNav || !this.tocToggle) return;
+
+        this.pageNav.classList.add('-translate-x-full');
+        this.pageNav.classList.remove('translate-x-0');
+        this.tocToggle.setAttribute('aria-expanded', 'false');
+
+        this.hideOverlay();
+        document.body.style.overflow = '';
+    }
+
+    private showOverlay(): void {
+        let overlay = safeQuerySelector<HTMLDivElement>('#toc-overlay');
+
+        if (!overlay) {
+            overlay = this.createOverlay();
+        }
+
+        overlay!.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            overlay!.classList.remove('opacity-0');
+            overlay!.classList.add('opacity-50');
+        });
+    }
+
+    private hideOverlay(): void {
+        const overlay = safeQuerySelector<HTMLDivElement>('#toc-overlay');
+        if (!overlay) return;
+
+        overlay.classList.remove('opacity-50');
+        overlay.classList.add('opacity-0');
+
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+        }, TRANSITION_DURATION);
+    }
+
+    private createOverlay(): HTMLDivElement {
+        const overlay = document.createElement('div');
+        overlay.id = 'toc-overlay';
+        overlay.className = 'fixed inset-0 z-30 bg-black opacity-0 transition-opacity duration-300 lg:hidden';
+        overlay.addEventListener('click', this.closeToc.bind(this));
+        document.body.appendChild(overlay);
+        return overlay;
+    }
+}
+// ---------------- END OF: Table of Contents Class ----------------
+
+
+
 // DOM Declarations
 const $file = safeQuerySelector<HTMLInputElement>('#file-input');
 const $log = safeQuerySelector<HTMLElement>('#log');
@@ -42,83 +149,11 @@ type Row = {
     UseCase?: string;
 };
 
-// -------- ToC mobile nav --------
+// Table of Contents Init
 document.addEventListener('DOMContentLoaded', () => {
-    // Declarations
-    const $tocToggle = safeQuerySelector<HTMLButtonElement>('#toc-toggle');
-    const $tocClose = safeQuerySelector<HTMLButtonElement>('#toc-close');
-    const $pageNav = safeQuerySelector<HTMLElement>('#page-nav');
-
-    if ($pageNav) {
-        const tocLinks = safeQuerySelectorAll<HTMLAnchorElement>('.toc-link');
-
-        if ($tocToggle && $tocClose) {
-            // Open toc function
-            const openToc = () => {
-                if (!$pageNav) return;
-                $pageNav.classList.remove('-translate-x-full');
-                $pageNav.classList.add('translate-x-0');
-                $tocToggle.setAttribute('aria-expanded', 'true');
-
-                let overlay = safeQuerySelector<HTMLDivElement>('#toc-overlay');
-                if (!overlay) {
-                    overlay = document.createElement('div');
-                    overlay.id = 'toc-overlay';
-                    overlay.className = 'fixed inset-0 z-30 bg-black opacity-0 transition-opacity duration-300 lg:hidden';
-                    document.body.appendChild(overlay);
-                    overlay.addEventListener('click', closeToc);
-                }
-                overlay.classList.remove('hidden');
-
-                // opacity transition for smoothness
-                requestAnimationFrame(() => {
-                    overlay!.classList.remove('opacity-0');
-                    overlay!.classList.add('opacity-50');
-                });
-
-                document.body.style.overflow = 'hidden';
-            };
-
-            // Close toc function
-            const closeToc = () => {
-                if (!$pageNav) return;
-                $pageNav.classList.add('-translate-x-full');
-                $pageNav.classList.remove('translate-x-0');
-                $tocToggle.setAttribute('aria-expanded', 'false');
-
-                const overlay = safeQuerySelector<HTMLDivElement>('#toc-overlay');
-                if (overlay) {
-                    overlay.classList.remove('opacity-50');
-                    overlay.classList.add('opacity-0');
-                    
-                    setTimeout(() => {
-                        overlay.classList.add('hidden');
-                    }, TRANSITION_DURATION);
-                }
-                document.body.style.overflow = '';
-            };
-
-            $tocToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if ($pageNav && $pageNav.classList.contains('-translate-x-full')) {
-                    openToc();
-                } else {
-                    closeToc();
-                }
-            });
-
-            $tocClose.addEventListener('click', closeToc);
-
-            tocLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    if (window.innerWidth < TAILWIND_LG_BREAKPOINT) {
-                        closeToc();
-                    }
-                });
-            });
-        }
-    }
-});
+    const toc = new TableOfContents();
+    toc.init();
+})
 
 
 // -------- Download button helper functions --------
