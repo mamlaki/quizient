@@ -15,11 +15,16 @@ const TAILWIND_LG_BREAKPOINT = 1024;
 const LOG_QUEUE_DELAY = 400;
 const FADE_IN_DELAY = 10;
 
+// -------- Utilities --------
+// Type-safe Queries
+const safeQuerySelector = <T extends HTMLElement>(selector: string): T | null => document.querySelector(selector) as T | null;
+const safeQuerySelectorAll = <T extends HTMLElement>(selector: string): NodeListOf<T> => document.querySelectorAll(selector) as NodeListOf<T>;
+
 // DOM Declarations
-const $file = document.querySelector('#file-input') as HTMLInputElement;
-const $log = document.querySelector('#log') as HTMLElement;
-const $btn = document.querySelector('#convert-btn') as HTMLButtonElement;
-const $dropZone = document.querySelector('#drop-zone') as HTMLElement;
+const $file = safeQuerySelector<HTMLInputElement>('#file-input');
+const $log = safeQuerySelector<HTMLElement>('#log');
+const $btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
+const $dropZone = safeQuerySelector<HTMLElement>('#drop-zone');
 
 // Final XML output container
 let xmlString = "";
@@ -40,12 +45,12 @@ type Row = {
 // -------- ToC mobile nav --------
 document.addEventListener('DOMContentLoaded', () => {
     // Declarations
-    const $tocToggle = document.querySelector('#toc-toggle') as HTMLButtonElement || null;
-    const $tocClose = document.querySelector('#toc-close') as HTMLButtonElement || null;
-    const $pageNav = document.querySelector('#page-nav') as HTMLElement || null;
+    const $tocToggle = safeQuerySelector<HTMLButtonElement>('#toc-toggle');
+    const $tocClose = safeQuerySelector<HTMLButtonElement>('#toc-close');
+    const $pageNav = safeQuerySelector<HTMLElement>('#page-nav');
 
     if ($pageNav) {
-        const tocLinks = $pageNav.querySelectorAll('.toc-link');
+        const tocLinks = safeQuerySelectorAll<HTMLAnchorElement>('.toc-link');
 
         if ($tocToggle && $tocClose) {
             // Open toc function
@@ -55,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 $pageNav.classList.add('translate-x-0');
                 $tocToggle.setAttribute('aria-expanded', 'true');
 
-                let overlay = document.querySelector('#toc-overlay');
+                let overlay = safeQuerySelector<HTMLDivElement>('#toc-overlay');
                 if (!overlay) {
                     overlay = document.createElement('div');
                     overlay.id = 'toc-overlay';
@@ -81,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 $pageNav.classList.remove('translate-x-0');
                 $tocToggle.setAttribute('aria-expanded', 'false');
 
-                const overlay = document.querySelector('#toc-overlay');
+                const overlay = safeQuerySelector<HTMLDivElement>('#toc-overlay');
                 if (overlay) {
                     overlay.classList.remove('opacity-50');
                     overlay.classList.add('opacity-0');
