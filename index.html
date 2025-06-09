@@ -27,18 +27,35 @@
       <span>Drag and drop your file here, or click to select</span>
     </div>
     <div class="max-w-lg mx-auto mb-4 text-center">
-      <button
-        id="download-template-btn"
-        class="
-          download-template
-          bg-sky-600 text-white
-          px-3 py-2 rounded-md
-          hover:bg-sky-700 cursor-pointer
-          transition duration-200 ease-in-out
-        "
-        >
-        Download Template
-      </button>
+      <span class="text-gray-600">Download template:</span>
+      <a 
+        href="#" 
+        class="download-template text-sky-600 font-medium underline underline-offset-2 hover:text-sky-700" 
+        data-format="xlsx"
+      >
+        Excel (.xlsx)
+      </a>
+      <a 
+      href="#" 
+      class="download-template text-sky-600 font-medium underline underline-offset-2 hover:text-sky-700" 
+      data-format="xls"
+      >
+        Excel (.xls)
+      </a>
+      <a 
+        href="#" 
+        class="download-template text-sky-600 font-medium underline underline-offset-2 hover:text-sky-700" 
+        data-format="csv"
+      >
+        CSV (.csv)
+      </a>
+      <a 
+        href="#" 
+        class="download-template text-sky-600 font-medium underline underline-offset-2 hover:text-sky-700" 
+        data-format="ods"
+      >
+        OpenDocument (.ods)
+      </a>
     </div>
     <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" class="mb-6 mx-auto hidden">
     <div 

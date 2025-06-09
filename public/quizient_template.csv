@@ -1,0 +1,4 @@
+Type,Title,Question,OptionA,OptionB,OptionC,OptionD,Correct,Correct1,Correct2,Correct3,Correct4,UseCase
+MC,Q1_CanadaCap,What is the capital city of Canada?,Toronto,Vancouver,Ottawa,Montreal,C,,,,,
+shortanswer,Q1_CanadaCapShort,Name the capital of Canada.,,,,,,Ottawa,"Ottawa, Ontario",,,0
+truefalse,Q1_CanadaCapTrueFalse,Ottawa is the capital of Canada.,,,,,TRUE,,,,,

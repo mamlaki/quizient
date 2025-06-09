@@ -495,10 +495,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if ($downloadTemplateTriggers.length > 0) {
         const downloadHandler = (e: Event) => {
             e.preventDefault();
-            const templateUrl = `${import.meta.env.BASE_URL}quizient_template.xlsx`;
+            const target = e.currentTarget as HTMLElement;
+            const format = target.dataset.format || 'xlsx';
+            const fileName = `quizient_template.${format}`;
+            const templateUrl = `${import.meta.env.BASE_URL}${fileName}`;
             Object.assign(document.createElement('a'), {
                 href: templateUrl,
-                download: 'quizient_template.xlsx'
+                download: fileName
             }).click();
         }
 
