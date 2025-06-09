@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quizient</title>
-  <script type="module" crossorigin src="/quizient/assets/main-DYc3Fpbt.js"></script>
-  <link rel="stylesheet" crossorigin href="/quizient/assets/main-DROnEwTD.css">
+  <script type="module" crossorigin src="/quizient/assets/main--wYk96qw.js"></script>
+  <link rel="stylesheet" crossorigin href="/quizient/assets/main-Dx9crwC8.css">
 </head>
 <body class="p-8">
   <site-header>
@@ -27,19 +27,49 @@
     >
       <span>Drag and drop your file here, or click to select</span>
     </div>
-    <div class="max-w-lg mx-auto mb-4 text-center">
-      <button
-        id="download-template-btn"
-        class="
-          download-template
-          bg-sky-600 text-white
-          px-3 py-2 rounded-md
-          hover:bg-sky-700 cursor-pointer
-          transition duration-200 ease-in-out
-        "
+    <div class="max-w-lg mx-auto mb-4 flex justify-center">
+      <div id='template-dropdown' class="relative w-64">
+        <button
+          type="button"
+          id="template-dropdown-btn"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          class="
+            relative w-full rounded-md py-2 pl-3 pr-10 
+            bg-sky-600 text-white
+            shadow-sm ring-inset ring-gray-300
+            hover:bg-sky-700 cursor-pointer sm:text-sm transition-colors
+          " 
         >
-        Download Template
-      </button>
+          <span id="template-dropdown-label" class="block truncate">Download Template</span>
+          <span class="pointer-events-none absolute inset-y-0 right-9 flex items-center pr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down-icon lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+        </button>
+        <ul
+          id="template-dropdown-menu"
+          role="listbox"
+          data-state="closed"
+          class="
+            absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md
+            bg-white py-1 text-base shadow-lg ring-1 ring-gray-200
+            focus:outline-none sm:text-sm
+          "
+        > 
+          <li role="option" data-format="xlsx" class="template-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+            <span class="font-normal block truncate">Excel (.xlsx)</span>
+          </li>
+          <li role="option" data-format="xls" class="template-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+            <span class="font-normal block truncate">Excel 97-2004 (.xls)</span>
+          </li>
+          <li role="option" data-format="csv" class="template-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+            <span class="font-normal block truncate">CSV (.csv)</span>
+          </li>
+          <li role="option" data-format="ods" class="template-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+            <span class="font-normal block truncate">OpenDocument (.ods)</span>
+          </li>
+        </ul>
+      </div>
     </div>
     <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" class="mb-6 mx-auto hidden">
     <div 
