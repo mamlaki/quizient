@@ -13,47 +13,35 @@ class SiteHeader extends HTMLElement {
             }
             const headerHTML = await response.text();
             this.innerHTML = headerHTML;
-            this.classList.add('loaded')
-            // this.updateNavLinks();
+            this.classList.add('loaded');
+            this.updateNavLinks();
         } catch (error) {
             console.error('Error loading header: ', error);
-            this.classList.add('loaded')
+            this.classList.add('loaded');
         }
     }
 
-    // updateNavLinks() {
-    //     const navLinks = this.querySelectorAll('#nav-items a');
-    //     navLinks.forEach(link => {
-    //         const anchor = link as HTMLAnchorElement;
+    updateNavLinks() {
+        const normalizePath = (path: string): string => {
+            return path.replace(/\/$/, '') || '/';
+        }
+        const links = this.querySelectorAll('a');
+        const currentPath = normalizePath(window.location.pathname);
+        links.forEach(link => {
+            const href = link.getAttribute('href');
+            if (!href) return; 
 
-    //         let linkPath = new URL(anchor.href).pathname;
-    //         let currentPath = window.location.pathname;
+            let linkPath = normalizePath(new URL(href, window.location.href).pathname);
 
-    //         if (linkPath.endsWith('/index.html')) {
-    //             linkPath = linkPath.substring(0, linkPath.length - 'index.html'.length) || '/';
-    //         }   
-
-    //         if (linkPath === '') {
-    //             linkPath = '/';
-    //         }
-
-    //         if (currentPath.endsWith('index.html')) {
-    //             currentPath = currentPath.substring(0, currentPath.length - 'index.html'.length) || '/';
-    //         }
-
-    //         if (currentPath === '') {
-    //             currentPath = '/';
-    //         }
-
-    //         const isRootPathMatch = (linkPath === '/' || linkPath === '') && (currentPath == '/' || currentPath === '');
-
-    //         if (linkPath === currentPath || (isRootPathMatch && linkPath === currentPath)) {
-    //             anchor.className = 'text-sky-600';
-    //         } else {
-    //             anchor.className = 'text-gray-700 hover:text-sky-600 transition-colors';
-    //         }
-    //     });
-    // }
+            if (linkPath === currentPath) {
+                link.classList.remove('text-gray-700');
+                link.classList.add('text-sky-600');
+            } else {
+                link.classList.remove('text-sky-600');
+                link.classList.add('text-gray-700');
+            }
+        })
+    }
 }
 
 customElements.define('site-header', SiteHeader);
