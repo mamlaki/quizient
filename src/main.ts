@@ -489,8 +489,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const $file = safeQuerySelector<HTMLInputElement>('#file-input');
     const $btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
     const $dropZone = safeQuerySelector<HTMLElement>('#drop-zone');
+    const $downloadTemplateBtn = safeQuerySelector<HTMLElement>('#download-template-btn');
 
-    
+    // Template Download Handler
+    if ($downloadTemplateBtn) {
+        $downloadTemplateBtn.addEventListener('click', () => {
+            const templateUrl = `${import.meta.env.BASE_URL}quizient_template.xlsx`;
+            Object.assign(document.createElement('a'), {
+                href: templateUrl,
+                download: 'quizient_template.xlsx'
+            }).click();
+        });
+    }
+
+
     if ($file && $dropZone && $btn) {
         // -------- When a user adds a file --------
         $file.addEventListener('change', async () => {
