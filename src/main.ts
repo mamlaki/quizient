@@ -490,24 +490,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const $btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
     const $dropZone = safeQuerySelector<HTMLElement>('#drop-zone');
     const $downloadTemplateTriggers = safeQuerySelectorAll<HTMLElement>('.download-template');
+    const $templateDropdown = safeQuerySelector<HTMLDivElement>('#template-dropdown');
 
-    // Template Download Handler
-    if ($downloadTemplateTriggers.length > 0) {
-        const downloadHandler = (e: Event) => {
+    const triggerTemplateDownload = (format: string) => {
+        const fileName = `quizient_template.${format}`;
+        const templateUrl = `${import.meta.env.BASE_URL}${fileName}`;
+        Object.assign(document.createElement('a'), {
+            href: templateUrl,
+            download: fileName
+        }).click();
+    };
+   
+
+    // Template download link handler
+    $downloadTemplateTriggers.forEach(trigger => {
+        trigger.addEventListener('click', e => {
             e.preventDefault();
-            const target = e.currentTarget as HTMLElement;
-            const format = target.dataset.format || 'xlsx';
-            const fileName = `quizient_template.${format}`;
-            const templateUrl = `${import.meta.env.BASE_URL}${fileName}`;
-            Object.assign(document.createElement('a'), {
-                href: templateUrl,
-                download: fileName
-            }).click();
-        }
-
-        $downloadTemplateTriggers.forEach(trigger => {
-            trigger.addEventListener('click', downloadHandler);
+            const format = (e.currentTarget as HTMLElement).dataset.format || 'xlsx';
+            triggerTemplateDownload(format);
         });
+    });
+
+    // Template home page dropdown handler
+    if ($templateDropdown) {
+        const btn = safeQuerySelector<HTMLButtonElement>('#template-dropdown-btn');
+        const menu = safeQuerySelector<HTMLUListElement>('#template-dropdown-menu');
+
+        if (btn && menu) {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                const state = menu.getAttribute('data-state');
+                if (state === 'closed') {
+                    menu.setAttribute('data-state', 'open');
+                    btn.setAttribute('aria-expanded', 'true');
+                } else {
+                    menu.setAttribute('data-state', 'closed');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+
+            });
+
+            menu.addEventListener('click', e => {
+                const option = (e.target as HTMLElement).closest('.template-option');
+                if (option instanceof HTMLLIElement) {
+                    const format = option.dataset.format;
+                    if (format) {
+                        triggerTemplateDownload(format);
+                        menu.setAttribute('data-state', 'closed');
+                        btn.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            });
+
+            document.addEventListener('click', e => {
+                if (btn && menu && !btn.contains(e.target as Node) && !menu.contains(e.target as Node)) {
+                    menu.setAttribute('data-state', 'closed');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
     }
 
 

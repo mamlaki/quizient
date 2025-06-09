@@ -24,3 +24,20 @@ site-header.loaded,
 site-footer.loaded {
     opacity: 1;
 }
+
+/* Home Page Template Dropdown */
+#template-dropdown-menu {
+    transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
+}
+
+#template-dropdown-menu[data-state='closed'] {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+}
+
+#template-dropdown-menu[data-state='open'] {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
