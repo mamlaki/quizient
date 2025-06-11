@@ -347,22 +347,58 @@ class UIController {
         // Filter Bdage
         if (this.currentFilter !== 'filter-all') {
             const filterBadge = document.createElement('span');
-            filterBadge.className = 'inline-block px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700';
+            filterBadge.className = 'inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700';
 
             let filterLabel = '';
             if (this.currentFilter === 'filter-multichoice') filterLabel = 'Multiple-choice';
             else if (this.currentFilter === 'filter-truefalse') filterLabel = 'True / False';
             else if (this.currentFilter === 'filter-shortanswer') filterLabel = 'Short answer';
-            filterBadge.textContent = `Filter: ${filterLabel}`;
+            filterBadge.innerHTML = `
+                <span>Filter: ${filterLabel}</span>
+                <button
+                    class="filter-clear-btn mt-0.3 ml-1 hover:text-amber-900 cursor-pointer" 
+                    aria-label="Clear ${filterLabel} filter"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            `;
+            
+            const clearBtn = filterBadge.querySelector('.filter-clear-btn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    this.currentFilter = 'filter-all';
+                    this.applyFilterAndSort();
+                    this.filterPreview();
+                });
+            }
+
             badgeContainer.appendChild(filterBadge);
         }
 
         // Sort Badge
         if  (this.currentSort !== 'sort-az') {
             const sortBadge = document.createElement('span');
-            sortBadge.className = 'inline-block px-2 py-1 text-xs font-semibold rounded-full bg-sky-100 text-sky-700';
+            sortBadge.className = 'inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-sky-100 text-sky-700';
             const sortLabel = this.currentSort === 'sort-az' ? 'A-Z' : 'Z-A';
-            sortBadge.textContent = `Sort: ${sortLabel}`;
+            
+            sortBadge.innerHTML = `
+                <span>Sort: ${sortLabel}</span>
+                <button
+                    class="sort-clear-btn mt-0.3 ml-1 hover:text-sky-900 cursor-pointer" aria-label="Clear ${sortLabel} sort"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+            `;
+
+            const clearBtn = sortBadge.querySelector('.sort-clear-btn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    this.currentSort = 'sort-az';
+                    this.applyFilterAndSort();
+                    this.filterPreview();
+                });
+            }
+
             badgeContainer.appendChild(sortBadge);
         }
     }
