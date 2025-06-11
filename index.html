@@ -4,14 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quizient</title>
-  <script type="module" crossorigin src="/quizient/assets/main--wYk96qw.js"></script>
-  <link rel="stylesheet" crossorigin href="/quizient/assets/main-Dx9crwC8.css">
+  <script type="module" crossorigin src="/quizient/assets/main-BS_r8nK_.js"></script>
+  <link rel="stylesheet" crossorigin href="/quizient/assets/main-DMD0EAes.css">
 </head>
 <body class="p-8">
   <site-header>
     <div class="min-h-70 max-w-lg"></div>
   </site-header>
   <main>
+
+    <!-- Drag and Drop Area -->
     <div 
       id="drop-zone"
       class="
@@ -27,6 +29,8 @@
     >
       <span>Drag and drop your file here, or click to select</span>
     </div>
+
+    <!-- Template Selection Dropdown -->
     <div class="max-w-lg mx-auto mb-4 flex justify-center">
       <div id='template-dropdown' class="relative w-64">
         <button
@@ -56,27 +60,31 @@
             focus:outline-none sm:text-sm
           "
         > 
-          <li role="option" data-format="xlsx" class="template-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+          <li role="option" data-format="xlsx" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
             <span class="font-normal block truncate">Excel (.xlsx)</span>
           </li>
-          <li role="option" data-format="xls" class="template-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+          <li role="option" data-format="xls" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
             <span class="font-normal block truncate">Excel 97-2004 (.xls)</span>
           </li>
-          <li role="option" data-format="csv" class="template-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+          <li role="option" data-format="csv" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
             <span class="font-normal block truncate">CSV (.csv)</span>
           </li>
-          <li role="option" data-format="ods" class="template-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+          <li role="option" data-format="ods" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
             <span class="font-normal block truncate">OpenDocument (.ods)</span>
           </li>
         </ul>
       </div>
     </div>
+
+    <!-- Hidden File Input for Drop Area -->
     <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" class="mb-6 mx-auto hidden">
+
+    <!-- Log -->
     <div 
       id="log"
       class="
         bg-gray-100
-        mx-auto mb-4 p-4
+        mx-auto mb-6 p-4
         rounded-md
         text-sm font-mono
         w-full max-w-xl max-h-48 
@@ -85,6 +93,128 @@
       "
     >
     </div>
+
+    <!-- Parsed Question Preview Area -->
+    <div
+      id="preview-container"
+      class="
+        w-full max-w-xl mx-auto mb-4
+        hidden opacity-0 transition-opacity ease-in-out duration-300
+      " 
+    >
+      
+      <div class="flex justify-between items-center mb-2 gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <h3 class="text-lg text-gray-700 font-semibold">Preview</h3>
+          <div id="active-filters" class="flex items-center gap-2"></div>
+        </div>
+        <!-- Preivew Controls --> 
+        <div class="flex items-center gap-2">
+          <!-- Search Bar -->
+          <div id="search-wrapper" class="relative flex items-center">
+            <!-- Search Input -->
+            <input 
+              id="search-input"
+              type="text"
+              placeholder="Search..."
+              class="
+                search-input
+                w-0 px-3 py-[5px] mr-2
+                border border-gray-300 rounded-md
+                text-sm
+                opacity-0
+                transition-all duration-300 ease-in-out
+                focus:outline-none focus:border-sky-500
+              "
+            >
+            <!-- Clear Search -->
+            <button
+              id="clear-search-btn"
+              type="button"
+              aria-label="Clear search"
+              class="
+                absolute right-10 w-4 h-4
+                text-gray-400 hover:text-gray-600
+                opacity-0 transition-opacity duration-300 cursor-pointer
+                hidden 
+              "
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+            <!-- Toggle Search -->
+            <button
+              id="search-btn"
+              type="button"
+              aria-label="Toggle search"
+              class="
+                flex items-center justify-center
+                w-6 h-6
+                bg-sky-600 hover:bg-sky-700 cursor-pointer
+                text-white rounded-md transition-colors 
+              "
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"  stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+            </button>
+          </div>
+          <!-- Filter / Sort -->
+          <div id="filter-dropdown" class="relative">
+            <button
+              id="filter-dropdown-btn"
+              type="button"
+              aria-label="Filter dropdown toggle"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              class="
+                flex items-center justify-center
+                w-6 h-6
+                bg-amber-500 hover:bg-amber-600
+                text-white rounded-md transition-colors cursor-pointer
+              "
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-wide-narrow-icon lucide-arrow-down-wide-narrow"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/></svg>
+            </button>
+
+            <!-- Filter Dropdown -->
+            <ul
+              id="filter-dropdown-menu"
+              role="listbox"
+              data-state="closed"
+              class="
+                absolute right-0 w-48 mt-1 py-1 z-999
+                bg-white ring-gray-200 rounded-md shadow-lg text-sm
+                focus:outline-none
+              "
+            >
+              <!-- Filter Options -->
+              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-all">All questions</li>
+              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-multichoice">Multiple-choice</li>
+              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-truefalse">True / False</li>
+              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-shortanswer"> Short answer</li>
+
+              <li class="border-gray-200 border-t my-1"></li>
+
+              <!-- Sorting Options -->
+              <li class="filter-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="sort-az">Title A–Z</li>
+              <li class="filter-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="sort-za">Title Z–A</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+        
+      
+      <!-- Preview Area -->
+      <div
+        id="preview"
+        class="
+          bg-gray-100
+          text-sm
+          w-full max-h-96 p-4 rounded-md overflow-y-auto
+        "
+      >
+      </div>
+    </div>
+
+    <!-- Convert/Download Button -->
     <button 
       id="convert-btn" 
       class="
