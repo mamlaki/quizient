@@ -295,13 +295,46 @@ class UIController {
         this.applyFilterAndSort();
 
         const query = this.searchInput.value.trim().toLowerCase();
-        if (!query) return;
         const questions = safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item');
 
-        questions.forEach(question => {
-            const text = question.textContent?.toLowerCase() || '';
-            question.classList.toggle('hidden', query !== '' && !text.includes(query));
-        });
+        if (query) {
+            questions.forEach(question => {
+                const text = question.textContent?.toLowerCase() || '';
+                question.classList.toggle('hidden', query !== '' && !text.includes(query));
+            });
+        }
+    
+        this.updateActiveFiltersBadge();
+    }
+
+    private updateActiveFiltersBadge(): void {
+        const badgeContainer = safeQuerySelector<HTMLElement>('#active-filters');
+        console.log(badgeContainer);
+        if (!badgeContainer) return;
+        badgeContainer.innerHTML = '';
+
+
+        // Filter Bdage
+        if (this.currentFilter !== 'filter-all') {
+            const filterBadge = document.createElement('span');
+            filterBadge.className = 'inline-block px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700';
+
+            let filterLabel = '';
+            if (this.currentFilter === 'filter-multichoice') filterLabel = 'Multiple-choice';
+            else if (this.currentFilter === 'filter-truefalse') filterLabel = 'True / False';
+            else if (this.currentFilter === 'filter-shortanswer') filterLabel = 'Short answer';
+            filterBadge.textContent = `Filter: ${filterLabel}`;
+            badgeContainer.appendChild(filterBadge);
+        }
+
+        // Sort Badge
+        if  (this.currentSort !== 'sort-az') {
+            const sortBadge = document.createElement('span');
+            sortBadge.className = 'inline-block px-2 py-1 text-xs font-semibold rounded-full bg-sky-100 text-sky-700';
+            const sortLabel = this.currentSort === 'sort-az' ? 'A-Z' : 'Z-A';
+            sortBadge.textContent = `Sort: ${sortLabel}`;
+            badgeContainer.appendChild(sortBadge);
+        }
     }
     // ----- ENDOF: SEARCH -----
 
