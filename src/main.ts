@@ -264,9 +264,8 @@ class UIController {
         this.searchBtn.addEventListener('click', () => this.toggleSearch());
         this.searchInput.addEventListener('input', () => this.filterPreview());
 
-        document.addEventListener('click', (e) => {
-            const p = this.searchBtn!.parentElement!;
-            if (!p.contains(e.target as Node) && this.searchInput!.offsetWidth) {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
                 this.toggleSearch(true);
             }
         });
