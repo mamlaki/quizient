@@ -671,29 +671,37 @@ class FileProcessor {
         this.logQueue = logQueue;
     }
 
-    async processFile(file: File): Promise<void> {
+    async processFiles(files: File[]): Promise<void> {
         this.resetUI();
 
-        this.logQueue.add(`Loading: ${file.name}`);
+        const allQuestions: Question[] = [];
+        let totalRows = 0;
         
-        const fileTypeInfo = this.validateFileType(file);
-        if (!fileTypeInfo.isValid) {
-            this.logQueue.add(fileTypeInfo.errorMessage!, undefined, 'error');
-            this.ui.hideDownloadBtn();
-            return;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            this.logQueue.add(`Loading (${i + 1}/${files.length}): ${file.name}`);
+            
+            const fileTypeInfo = this.validateFileType(file);
+            if (!fileTypeInfo.isValid) {
+                this.logQueue.add(fileTypeInfo.errorMessage!, undefined, 'error');
+                this.ui.hideDownloadBtn();
+                continue;
+            }
+
+            this.logQueue.add(`Processing ${fileTypeInfo.description} file: ${file.name}...`);
+
+            try {
+                const { questions, totalRows: rows } = await this.parseFile(file);
+                totalRows += rows;
+                allQuestions.push(...questions);
+            } catch (error) {
+                console.error(`Error processing ${file.name}: `, error);
+                this.logQueue.add(`Error processing ${file.name} (${fileTypeInfo.description}). Open the console for more information.`);
+            }
         }
 
-        this.logQueue.add(`Processing ${fileTypeInfo.description} file: ${file.name}...`);
-
-        try {
-            const result = await this.parseFile(file); // parse the file
-            this.questions = result.questions;
-            this.generateXML(result, file.name); // generate the xml
-        } catch (error) {
-            console.error(`Error processing ${file.name}: `, error);
-            this.logQueue.add(`Error processing ${file.name} (${fileTypeInfo.description}). Open the console for more information.`);
-        }
-
+        this.questions = allQuestions;
+        this.generateXML({ questions: allQuestions, totalRows }, files.map(f => f.name).join(', '));
     }
 
     getXMLString(): string {
@@ -778,13 +786,11 @@ class FileProcessor {
         this.xmlString = builder.build({ quiz: {question: allQuestions } });
 
         this.logQueue.add(`Generated ${allQuestions.length} questions`, () => {
-            if (allQuestions.length < totalRowsProcessed) {
-                this.logQueue.add(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors cross all sheets).`);
-            } else {
-                this.ui.renderPreview(this.questions);
-                this.ui.showDownloadBtn();
-            }
-            
+            if (totalRowsProcessed > allQuestions.length) {
+                this.logQueue.add(`(${totalRowsProcessed - allQuestions.length} rows skipped across all files).`);
+            } 
+            this.ui.renderPreview(this.questions);
+            this.ui.showDownloadBtn();
         });
     }
 
@@ -939,11 +945,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if ($file && $dropZone && $btn) {
         // -------- When a user adds a file --------
-        $file.addEventListener('change', async () => {
-            const file = $file.files?.[0];
-            if (!file) return;
-
-            await fileProcessor.processFile(file);
+        $file.addEventListener('change', () => {
+            if (!$file.files?.length) return;
+            fileProcessor.processFiles(Array.from($file.files));
         });
 
         // -------- Drop zone functionality --------
@@ -963,12 +967,10 @@ document.addEventListener('DOMContentLoaded', () => {
         $dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             $dropZone.classList.remove('bg-sky-50');
-            const files = (e.dataTransfer?.files || []);
-            if (files.length > 0) {
-                // @ts-expect-error
-                $file.files = files;
-                $file.dispatchEvent(new Event('change')); // triggers the change event listener above (aka the file processing)
-            }
+            const files = e.dataTransfer?.files;
+            if (!files || !files.length) return;
+
+            fileProcessor.processFiles(Array.from(files));
         });
     
         $dropZone.addEventListener('click', () => {
@@ -980,7 +982,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const blob = new Blob([fileProcessor.getXMLString()], { type: 'text/xml' }); // create blob 
             const url = URL.createObjectURL(blob); // temp blob url
         
-            // Create hidden link that is auto clicked which downloads the file
+            // Create hidden link that is auto clicked which downloads the file}
             Object.assign(document.createElement('a'), {
                 href: url,
                 download: 'questions.xml'
