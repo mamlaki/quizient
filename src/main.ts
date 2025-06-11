@@ -165,6 +165,7 @@ class UIController {
     private previewContainer: HTMLElement | null;
     private preview: HTMLElement | null;
     private searchBtn: HTMLButtonElement | null;
+    private clearSearchBtn: HTMLButtonElement | null;
     private searchInput: HTMLInputElement | null;
     private filterBtn: HTMLButtonElement | null;
     private filterMenu: HTMLUListElement | null;
@@ -180,6 +181,7 @@ class UIController {
         this.preview = safeQuerySelector<HTMLElement>('#preview');
 
         this.searchBtn = safeQuerySelector<HTMLButtonElement>('#search-btn');
+        this.clearSearchBtn = safeQuerySelector<HTMLButtonElement>('#clear-search-btn');
         this.searchInput = safeQuerySelector<HTMLInputElement>('#search-input');
 
         this.filterBtn = safeQuerySelector<HTMLButtonElement>('#filter-dropdown-btn');
@@ -259,17 +261,43 @@ class UIController {
 
     // SEARCH
     private initSearch(): void {
-        if (!this.searchBtn || !this.searchInput) return;
+        if (!this.searchBtn || !this.searchInput || !this.clearSearchBtn) return;
 
         this.searchBtn.addEventListener('click', () => this.toggleSearch());
-        this.searchInput.addEventListener('input', () => this.filterPreview());
+        this.searchInput.addEventListener('input', () =>  {
+            this.filterPreview();
+            this.toggleClearButton();
+        });
+
+        this.clearSearchBtn.addEventListener('click', () => {
+            if (!this.searchInput) return;
+            this.searchInput.value = '';
+            this.filterPreview();
+            this.toggleClearButton();
+        });
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.toggleSearch(true);
+                this.toggleClearButton();
             }
         });
     }   
+
+    private toggleClearButton(): void {
+        if (!this.clearSearchBtn || !this.searchInput) return;
+
+        if (this.searchInput.value.trim()) {
+            this.clearSearchBtn.classList.remove('hidden', 'opacity-0');
+            this.clearSearchBtn.classList.add('opacity-100');
+        } else {
+            this.clearSearchBtn.classList.remove('opacity-100')
+            this.clearSearchBtn.classList.add('opacity-0');
+            setTimeout(() => {
+                this.clearSearchBtn?.classList.add('hidden');
+            }, TRANSITION_DURATION);
+        }
+    }
 
     private toggleSearch(forceClose = false): void {
         if (!this.searchInput) return;
@@ -285,6 +313,7 @@ class UIController {
             this.filterPreview();
         } else {
             this.searchInput.focus();
+            this.toggleClearButton();
         }
     }
 

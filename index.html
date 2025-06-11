@@ -111,6 +111,7 @@
         <div class="flex items-center gap-2">
           <!-- Search Bar -->
           <div id="search-wrapper" class="relative flex items-center">
+            <!-- Search Input -->
             <input 
               id="search-input"
               type="text"
@@ -125,6 +126,20 @@
                 focus:outline-none focus:border-sky-500
               "
             >
+            <!-- Clear Search -->
+            <button
+              id="clear-search-btn"
+              type="button"
+              aria-label="Clear search"
+              class="
+                absolute right-10 w-4 h-4
+                text-gray-400 hover:text-gray-600
+                opacity-0 transition-opacity duration-300 cursor-pointer
+                hidden 
+              "
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
             <!-- Toggle Search -->
             <button
               id="search-btn"
