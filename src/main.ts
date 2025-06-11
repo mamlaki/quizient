@@ -164,12 +164,62 @@ class UIController {
     private log: HTMLElement | null;
     private previewContainer: HTMLElement | null;
     private preview: HTMLElement | null;
+    private searchBtn: HTMLButtonElement | null;
+    private searchInput: HTMLInputElement | null;
     
     constructor() {
         this.btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
         this.log = safeQuerySelector<HTMLElement>('#log');
         this.previewContainer = safeQuerySelector<HTMLElement>('#preview-container');
         this.preview = safeQuerySelector<HTMLElement>('#preview');
+        this.searchBtn = safeQuerySelector<HTMLButtonElement>('#search-btn');
+        this.searchInput = safeQuerySelector<HTMLInputElement>('#search-input');
+
+        this.initSearch();
+    }
+
+    private initSearch(): void {
+        if (!this.searchBtn || !this.searchInput) return;
+
+        this.searchBtn.addEventListener('click', () => this.toggleSearch());
+        this.searchInput.addEventListener('input', () => this.filterPreview());
+
+        document.addEventListener('click', (e) => {
+            const p = this.searchBtn!.parentElement!;
+            if (!p.contains(e.target as Node) && this.searchInput!.offsetWidth) {
+                this.toggleSearch(true);
+            }
+        });
+    }   
+
+    private toggleSearch(forceClose = false): void {
+        if (!this.searchInput) return;
+
+        const shouldClose = forceClose || !this.searchInput.classList.contains('w-0');
+        this.searchInput.classList.toggle('w-0', shouldClose);
+        this.searchInput.classList.toggle('opacity-0', shouldClose);
+        this.searchInput.classList.toggle('w-48', !shouldClose);
+        this.searchInput.classList.toggle('opacity-100', !shouldClose);
+
+        if (shouldClose) {
+            this.searchInput.value = '';
+            this.filterPreview();
+        } else {
+            this.searchInput.focus();
+        }
+    }
+
+    private filterPreview(): void {
+        if (!this.searchInput) return;
+        const query = this.searchInput.value.trim().toLowerCase();
+        const questions = safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item');
+
+        questions.forEach(question => {
+            const text = question.textContent?.toLowerCase() || '';
+            question.classList.toggle('hidden', query !== '' && !text.includes(query));
+        });
+
+        this.filterPreview?.();
     }
 
     showDownloadBtn(): void {

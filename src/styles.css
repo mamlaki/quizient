@@ -25,7 +25,7 @@ site-footer.loaded {
     opacity: 1;
 }
 
-/* Home Page Template Dropdown */
+/* Home Page - Template Dropdown */
 #template-dropdown-menu {
     transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
 }
@@ -40,4 +40,9 @@ site-footer.loaded {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
+}
+
+/* Home Page - Preview Search */
+#search-input {
+    transform-origin: 100% 50%;
 }
