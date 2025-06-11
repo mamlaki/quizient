@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quizient</title>
-  <script type="module" crossorigin src="/quizient/assets/main-BS_r8nK_.js"></script>
-  <link rel="stylesheet" crossorigin href="/quizient/assets/main-DMD0EAes.css">
+  <script type="module" crossorigin src="/quizient/assets/main-CZC-JLfY.js"></script>
+  <link rel="stylesheet" crossorigin href="/quizient/assets/main-CFOaSVyU.css">
 </head>
 <body class="p-8">
   <site-header>
@@ -27,7 +27,7 @@
         animate-[breathing-border_3s_ease-in-out_infinite]
       "    
     >
-      <span>Drag and drop your file here, or click to select</span>
+      <span>Drag and drop your file(s) here, or click to select</span>
     </div>
 
     <!-- Template Selection Dropdown -->
@@ -77,7 +77,26 @@
     </div>
 
     <!-- Hidden File Input for Drop Area -->
-    <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" class="mb-6 mx-auto hidden">
+    <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" multiple class="mb-6 mx-auto hidden">
+
+    <!-- Hidden File List -->
+    <div id="file-list" class="flex flex-wrap gap-2 justify-center mb-4 max-w-lg mx-auto hidden"></div>
+
+    <!-- Hidden Clear/Convert Btns Drop Area -->
+    <div id="file-actions" class="flex justify-center gap-3 max-w-lg mb-4 mx-auto hidden">
+      <button
+        id="clear-files-btn"
+        class="bg-gray-300 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-400 cursor-pointer"
+      >
+        Clear
+      </button>
+      <button
+        id="convert-btn"
+        class="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 cursor-pointer"
+      >
+        Convert
+      </button>
+    </div>
 
     <!-- Log -->
     <div 
@@ -87,7 +106,7 @@
         mx-auto mb-6 p-4
         rounded-md
         text-sm font-mono
-        w-full max-w-xl max-h-48 
+        w-full max-w-xl max-h-80 
         overflow-y-auto
         hidden
       "
@@ -208,15 +227,17 @@
         class="
           bg-gray-100
           text-sm
-          w-full max-h-96 p-4 rounded-md overflow-y-auto
+          w-full max-h-[80vh] min-h-40 relative
+          p-4 rounded-md
+          overflow-y-auto resize-y 
         "
       >
       </div>
     </div>
 
-    <!-- Convert/Download Button -->
+    <!-- Download Button -->
     <button 
-      id="convert-btn" 
+      id="download-btn" 
       class="
         bg-green-600 text-white
         px-3 py-2 mb-6 mx-auto block
