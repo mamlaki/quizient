@@ -78,6 +78,25 @@
     <!-- Hidden File Input for Drop Area -->
     <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" multiple class="mb-6 mx-auto hidden">
 
+    <!-- Hidden File List -->
+    <div id="file-list" class="flex flex-wrap gap-2 justify-center mb-4 max-w-lg mx-auto hidden"></div>
+
+    <!-- Hidden Clear/Convert Btns Drop Area -->
+    <div id="file-actions" class="flex justify-center gap-3 max-w-lg mb-4 mx-auto hidden">
+      <button
+        id="clear-files-btn"
+        class="bg-gray-300 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-400 cursor-pointer"
+      >
+        Clear
+      </button>
+      <button
+        id="convert-btn"
+        class="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 cursor-pointer"
+      >
+        Convert
+      </button>
+    </div>
+
     <!-- Log -->
     <div 
       id="log"
@@ -215,9 +234,9 @@
       </div>
     </div>
 
-    <!-- Convert/Download Button -->
+    <!-- Download Button -->
     <button 
-      id="convert-btn" 
+      id="download-btn" 
       class="
         bg-green-600 text-white
         px-3 py-2 mb-6 mx-auto block

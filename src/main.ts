@@ -173,7 +173,7 @@ class UIController {
     private currentSort: string = 'sort-az';
     
     constructor() {
-        this.btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
+        this.btn = safeQuerySelector<HTMLButtonElement>('#download-btn');
         this.log = safeQuerySelector<HTMLElement>('#log');
 
 
@@ -878,10 +878,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // DOM declarations
     const $file = safeQuerySelector<HTMLInputElement>('#file-input');
-    const $btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
+    const $btn = safeQuerySelector<HTMLButtonElement>('#download-btn');
     const $dropZone = safeQuerySelector<HTMLElement>('#drop-zone');
     const $downloadTemplateTriggers = safeQuerySelectorAll<HTMLElement>('.download-template');
     const $templateDropdown = safeQuerySelector<HTMLDivElement>('#template-dropdown');
+
+    const selectedFiles: File[] = [];
+    const $fileList = safeQuerySelector<HTMLElement>('#file-list');
+    const $fileActions = safeQuerySelector<HTMLElement>('#file-actions');
+    const $clearFilesBtn = safeQuerySelector<HTMLButtonElement>('#clear-files-btn');
+    const $convertBtn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
+
+    const refreshFileList = () => {
+        if (!$fileList || !$fileActions) return;
+
+        $fileList.innerHTML = '';
+        selectedFiles.forEach((file, i) => {
+            const item = document.createElement('div');
+            item.className = 'relative flex items-center px-3 py-2 gap-2 bg-white rounded shadow';
+            item.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-spreadsheet-icon lucide-file-spreadsheet"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/></svg>
+                <span class="text-sm">${file.name}</span>
+                <button data-i="${i}" class="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-rose-600 text-white text-[10px] rounded-full hover:bg-rose-700 cursor-pointer">
+                    x
+                </button>
+            `;
+            $fileList.appendChild(item);
+        });
+
+        const hasFiles = selectedFiles.length > 0;
+        $fileList.classList.toggle('hidden', !hasFiles);
+        $fileActions.classList.toggle('hidden', !hasFiles);
+    }
+
+
+    const addFiles = (files: FileList | File[]) => {
+        Array.from(files).forEach(file => {
+            if (!selectedFiles.some(sf => sf.name === file.name && sf.size === file.size)) selectedFiles.push(file);
+        });
+        refreshFileList();
+    }
 
     const triggerTemplateDownload = (format: string) => {
         const fileName = `quizient_template.${format}`;
@@ -943,11 +979,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    if ($file && $dropZone && $btn) {
+    if ($file && $dropZone && $btn && $convertBtn && $clearFilesBtn && $fileList) {
         // -------- When a user adds a file --------
         $file.addEventListener('change', () => {
-            if (!$file.files?.length) return;
-            fileProcessor.processFiles(Array.from($file.files));
+            if ($file.files?.length) addFiles($file.files);
         });
 
         // -------- Drop zone functionality --------
@@ -967,17 +1002,39 @@ document.addEventListener('DOMContentLoaded', () => {
         $dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             $dropZone.classList.remove('bg-sky-50');
-            const files = e.dataTransfer?.files;
-            if (!files || !files.length) return;
-
-            fileProcessor.processFiles(Array.from(files));
+            if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
         });
     
         $dropZone.addEventListener('click', () => {
             $file.click();
         })
         
-        // -------- Download button click functionality --------
+        $clearFilesBtn.addEventListener('click', () => {
+            selectedFiles.length = 0;
+            refreshFileList();
+        });
+
+        $fileList.addEventListener('click', (e) => {
+            const btn = (e.target as HTMLElement).closest('button[data-i]');
+            if (!btn) return;
+            const i = Number(btn.getAttribute('data-i'));
+            selectedFiles.splice(i, 1);
+            refreshFileList();
+        });
+
+        // -------- Convert button --------
+        $convertBtn?.addEventListener('click', () => {
+            if (!selectedFiles.length) return;
+            $convertBtn.disabled = true; 
+            $convertBtn.textContent = 'Converting...';
+            fileProcessor.processFiles([...selectedFiles]).then(() => {
+                $convertBtn.disabled = false; 
+                $convertBtn.textContent = 'Convert';
+                ui.showDownloadBtn();
+            });
+        });
+
+        // -------- Download button --------
         $btn.addEventListener('click', () => {
             const blob = new Blob([fileProcessor.getXMLString()], { type: 'text/xml' }); // create blob 
             const url = URL.createObjectURL(blob); // temp blob url
