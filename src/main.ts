@@ -166,18 +166,98 @@ class UIController {
     private preview: HTMLElement | null;
     private searchBtn: HTMLButtonElement | null;
     private searchInput: HTMLInputElement | null;
+    private filterBtn: HTMLButtonElement | null;
+    private filterMenu: HTMLUListElement | null;
+    private currentFilter: string = 'filter-all';
+    private currentSort: string = 'sort-az';
     
     constructor() {
         this.btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
         this.log = safeQuerySelector<HTMLElement>('#log');
+
+
         this.previewContainer = safeQuerySelector<HTMLElement>('#preview-container');
         this.preview = safeQuerySelector<HTMLElement>('#preview');
+
         this.searchBtn = safeQuerySelector<HTMLButtonElement>('#search-btn');
         this.searchInput = safeQuerySelector<HTMLInputElement>('#search-input');
 
+        this.filterBtn = safeQuerySelector<HTMLButtonElement>('#filter-dropdown-btn');
+        this.filterMenu = safeQuerySelector<HTMLUListElement>('#filter-dropdown-menu');
+
         this.initSearch();
+        this.initfilterMenu();
     }
 
+    // FILTER
+    private initfilterMenu(): void {
+        if (!this.filterBtn || !this.filterMenu) return;
+
+        this.filterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const open = this.filterMenu!.getAttribute('data-state') === 'open';
+            this.setDropdownState(!open);
+        });
+
+        this.filterMenu.addEventListener('click', (e) => {
+            const option = (e.target as HTMLElement).closest('.filter-option') as HTMLLIElement | null;
+            if (!option) return;
+
+            const action = option.dataset.action!;
+            if (action.startsWith('filter-')) this.currentFilter = action;
+            if (action.startsWith('sort-')) this.currentSort = action;
+
+            this.applyFilterAndSort();
+            this.filterPreview();
+            this.setDropdownState(false);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (this.filterBtn && this.filterMenu && !this.filterBtn.contains(e.target as Node) && !this.filterMenu.contains(e.target as Node)) {
+                this.setDropdownState(false);
+            }
+        })
+    }
+
+    private setDropdownState(open: boolean): void {
+        if (!this.filterMenu || !this.filterBtn) return;
+        this.filterMenu.setAttribute('data-state', open ? 'open' : 'closed');
+        this.filterBtn.setAttribute('aria-expanded', String(open));
+    }
+
+    private applyFilterAndSort(): void {
+        const questions = Array.from(safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item'));
+        
+        // Filter
+        questions.forEach(question => {
+            const type = question.querySelector('span')?.textContent || ''; // type in badge
+
+            const show = 
+                this.currentFilter === 'filter-all' ||
+                (this.currentFilter === 'filter-multichoice' && type === 'multichoice') ||
+                (this.currentFilter === 'filter-truefalse' && type ==='truefalse') ||
+                (this.currentFilter === 'filter-shortanswer' && type === 'shortanswer')
+            question.classList.toggle('hidden', !show);
+        });
+
+        // Sort
+        const container = this.preview!;
+        const visibleCards = questions.filter(q => !q.classList.contains('hidden'));
+
+        visibleCards.sort((a, b) => {
+            const A = a.querySelector('h4')?.textContent?.toLowerCase() || '';
+            const B = b.querySelector('h4')?.textContent?.toLowerCase() || '';
+            if (this.currentSort === 'sort-az') return A.localeCompare(B);
+            return B.localeCompare(A);
+        });
+
+        // Rerender
+        visibleCards.forEach(question => container.appendChild(question));
+    }
+
+    // ----- ENDOF: FILTER -----
+
+    // SEARCH
     private initSearch(): void {
         if (!this.searchBtn || !this.searchInput) return;
 
@@ -211,17 +291,22 @@ class UIController {
 
     private filterPreview(): void {
         if (!this.searchInput) return;
+
+        this.applyFilterAndSort();
+
         const query = this.searchInput.value.trim().toLowerCase();
+        if (!query) return;
         const questions = safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item');
 
         questions.forEach(question => {
             const text = question.textContent?.toLowerCase() || '';
             question.classList.toggle('hidden', query !== '' && !text.includes(query));
         });
-
-        this.filterPreview?.();
     }
+    // ----- ENDOF: SEARCH -----
 
+
+    // DOWNLOAD BUTTON
     showDownloadBtn(): void {
         if (!this.btn) return;
         
@@ -241,7 +326,10 @@ class UIController {
             this.btn!.classList.add('hidden');
         }, TRANSITION_DURATION);
     }
+    // ----- ENDOF: DOWNLOAD BUTTON -----
 
+
+    // LOG
     showLog(): void {
         this.log?.classList.remove('hidden');
     }
@@ -251,7 +339,10 @@ class UIController {
             this.log.innerHTML = '';
         }
     }
+    // ----- ENDOF: LOG -----
 
+
+    // PREVIEW
     showPreview(): void {
         if (!this.previewContainer) return;
 
@@ -290,6 +381,9 @@ class UIController {
             const questionElement = this.createQuestionElement(question, index);
             this.preview?.appendChild(questionElement);
         });
+
+        this.applyFilterAndSort();
+        this.filterPreview();
     }
 
     private createQuestionElement(question: Question, index: number): HTMLDivElement {
@@ -369,6 +463,8 @@ class UIController {
 
         return list;
     }
+
+    // ----- ENDOF: PREVIEW -----
 
     appendLog(message: string): HTMLDivElement | null {
         if (!this.log) return null;
