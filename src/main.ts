@@ -40,7 +40,18 @@ type Row = {
     UseCase?: string;
 };
 
-
+type Question = {
+    '@_type': 'multichoice' | 'truefalse' | 'shortanswer';
+    name: { text: string };
+    questiontext: {
+        '@_format': 'html';
+        text: {
+            '#cdata': string;
+        };
+    };
+    answer: any[];
+    usecase?: number;
+}
 
 // ---------------- Table of Contents Class ----------------
 class TableOfContents {
@@ -151,10 +162,14 @@ class TableOfContents {
 class UIController {
     private btn: HTMLButtonElement | null;
     private log: HTMLElement | null;
+    private previewContainer: HTMLElement | null;
+    private preview: HTMLElement | null;
     
     constructor() {
         this.btn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
         this.log = safeQuerySelector<HTMLElement>('#log');
+        this.previewContainer = safeQuerySelector<HTMLElement>('#preview-container');
+        this.preview = safeQuerySelector<HTMLElement>('#preview');
     }
 
     showDownloadBtn(): void {
@@ -185,6 +200,124 @@ class UIController {
         if (this.log) {
             this.log.innerHTML = '';
         }
+    }
+
+    showPreview(): void {
+        if (!this.previewContainer) return;
+
+        this.previewContainer?.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            this.previewContainer?.classList.remove('opacity-0');
+            this.previewContainer?.classList.add('opacity-100');
+        });
+    }
+
+    hidePreview(): void {
+        if (!this.previewContainer) return;
+        this.previewContainer.classList.remove('opacity-100');
+        this.previewContainer.classList.add('opacity-0');
+        setTimeout(() => {
+            this.previewContainer?.classList.add('hidden');
+        }, TRANSITION_DURATION);
+        this.previewContainer?.classList.add('hidden');
+    }
+
+    clearPreview(): void {
+        if (this.preview) this.preview.innerHTML = '';
+    }
+
+    renderPreview(questions: Question[]): void {
+        if (!this.preview) return;
+        this.clearPreview();
+        if (questions.length > 0) {
+            this.showPreview();
+        } else {
+            this.hidePreview();
+            return;
+        }
+
+        questions.forEach((question, index) =>  {
+            const questionElement = this.createQuestionElement(question, index);
+            this.preview?.appendChild(questionElement);
+        });
+    }
+
+    private createQuestionElement(question: Question, index: number): HTMLDivElement {
+        // Header
+        const header = document.createElement('div');
+        header.className = 'flex justify-between items-center mb-2';
+
+        const title = document.createElement('h4');
+        title.className = 'font-bold text-gray-800';
+        title.textContent = `Q${index + 1}: ${question.name.text}`;
+
+        const typeBadge = document.createElement('span');
+        typeBadge.className = 'text-xs font-semibold uppercase px-2 py-1 rounded-full bg-sky-100 text-sky-700';
+        typeBadge.textContent = question['@_type'];
+
+        header.appendChild(title);
+        header.appendChild(typeBadge);
+
+        // Questions
+        const questionWrapper = document.createElement('div');
+        questionWrapper.className = 'question-preview-item mb-4 p-4 rounded-md bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 ease-in-out';
+
+        const questionText = document.createElement('p');
+        questionText.className = 'mb-3 text-gray-700';
+        questionText.innerHTML = question.questiontext.text['#cdata'];
+
+        // Answers
+        const answersWrapper = document.createElement('div');
+        answersWrapper.className = 'answers-preview pt-3';
+
+        const answersHeader = document.createElement('h5');
+        answersHeader.className = 'text-xs font-semibold text-gray-500 mb-2';
+        answersHeader.textContent = 'Answers';
+        answersWrapper.appendChild(answersHeader);
+
+        const answerList = this.createAnswerList(question);
+        answersWrapper.appendChild(answerList);
+
+
+        questionWrapper.appendChild(header);
+        questionWrapper.appendChild(questionText);
+        questionWrapper.append(answersWrapper);
+
+        return questionWrapper;
+
+    }
+
+    private createAnswerList(question: Question): HTMLUListElement {
+        const list = document.createElement('ul');
+        const isMultichoice = question['@_type'] === 'multichoice';
+        const isTrueFalse = question['@_type'] === 'truefalse';
+
+        list.className = `${isMultichoice ? 'list-none' : 'list-disc'} pl-5 space-y-1 text-gray-600`;
+
+        question.answer.forEach((ans, index) => {
+            const listItem = document.createElement('li');
+            const isCorrect = ans['@_fraction'] === '100';
+            let text = ans.text;
+
+            if (isCorrect) {
+                if (isTrueFalse) {
+                    text = text.toUpperCase();
+                    listItem.className = `${text === 'TRUE' ? 'text-green-700 font-semibold' : 'text-rose-700 font-semibold'}`;
+                } else {
+                    listItem.className = 'text-green-700 font-semibold';
+                }
+            }
+            
+            if (isMultichoice) {
+                const prefix = String.fromCharCode(65 + index);
+                text = `${prefix}. ${text}`;
+            }
+
+            listItem.textContent = text;
+            list.appendChild(listItem);
+        });
+
+        return list;
     }
 
     appendLog(message: string): HTMLDivElement | null {
@@ -278,6 +411,7 @@ class FileProcessor {
     private ui: UIController;
     private logQueue: LogQueue;
     private xmlString = ""; // Final XML output container
+    private questions: Question[] = [];
 
     // File types
     private readonly supportedFileTypes: Record<string, string> = {
@@ -308,6 +442,7 @@ class FileProcessor {
 
         try {
             const result = await this.parseFile(file); // parse the file
+            this.questions = result.questions;
             this.generateXML(result, file.name); // generate the xml
         } catch (error) {
             console.error(`Error processing ${file.name}: `, error);
@@ -324,6 +459,8 @@ class FileProcessor {
         this.ui.clearLog();
         this.logQueue.clear();
         this.ui.hideDownloadBtn();
+        this.ui.clearPreview();
+        this.ui.hidePreview();
     }
 
     private validateFileType(file: File): { isValid: boolean; description?: string; errorMessage?: string } {
@@ -347,7 +484,7 @@ class FileProcessor {
         const buffer = await file.arrayBuffer();
         const wb = read(buffer, { type: 'array' });
 
-        let allQuestions: any[] = [];
+        let allQuestions: Question[] = [];
         let totalRowsProcessed = 0;
 
         for (const sheetName of wb.SheetNames) {
@@ -357,7 +494,7 @@ class FileProcessor {
             const rows = utils.sheet_to_json<Row>(sheet, { raw: false });
             totalRowsProcessed += rows.length;
 
-            const questionsFromSheet = rows.map(row => this.rowToQuestion(row)).filter(question => question !== null);
+            const questionsFromSheet = rows.map(row => this.rowToQuestion(row)).filter((question): question is Question => question !== null);
 
             allQuestions = allQuestions.concat(questionsFromSheet);
 
@@ -398,8 +535,11 @@ class FileProcessor {
         this.logQueue.add(`Generated ${allQuestions.length} questions`, () => {
             if (allQuestions.length < totalRowsProcessed) {
                 this.logQueue.add(`(${totalRowsProcessed - allQuestions.length} rows skipped or resulted in errors cross all sheets).`);
+            } else {
+                this.ui.renderPreview(this.questions);
+                this.ui.showDownloadBtn();
             }
-            this.ui.showDownloadBtn();
+            
         });
     }
 

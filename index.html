@@ -11,6 +11,8 @@
     <div class="min-h-70 max-w-lg"></div>
   </site-header>
   <main>
+
+    <!-- Drag and Drop Area -->
     <div 
       id="drop-zone"
       class="
@@ -26,6 +28,8 @@
     >
       <span>Drag and drop your file here, or click to select</span>
     </div>
+
+    <!-- Template Selection Dropdown -->
     <div class="max-w-lg mx-auto mb-4 flex justify-center">
       <div id='template-dropdown' class="relative w-64">
         <button
@@ -70,12 +74,16 @@
         </ul>
       </div>
     </div>
+
+    <!-- Hidden File Input for Drop Area -->
     <input id="file-input" type="file" accept=".xlsx, .xls, .ods, .csv" class="mb-6 mx-auto hidden">
+
+    <!-- Log -->
     <div 
       id="log"
       class="
         bg-gray-100
-        mx-auto mb-4 p-4
+        mx-auto mb-6 p-4
         rounded-md
         text-sm font-mono
         w-full max-w-xl max-h-48 
@@ -84,6 +92,28 @@
       "
     >
     </div>
+
+    <!-- Parsed Question Preview Area -->
+    <div
+      id="preview-container"
+      class="
+        w-full max-w-xl mx-auto mb-4
+        hidden opacity-0 transition-opacity ease-in-out duration-300
+      " 
+    >
+      <h3 class="text-lg font-semibold mb-2 text-gray-700">Preview</h3>
+      <div
+        id="preview"
+        class="
+          bg-gray-100
+          text-sm
+          w-full max-h-96 p-4 rounded-md overflow-y-auto
+        "
+      >
+      </div>
+    </div>
+
+    <!-- Convert/Download Button -->
     <button 
       id="convert-btn" 
       class="
