@@ -291,24 +291,26 @@ class UIController {
     private filterPreview(): void {
         if (!this.searchInput) return;
 
-        this.applyFilterAndSort();
-
         const query = this.searchInput.value.trim().toLowerCase();
-        const questions = safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item');
+        const questions = Array.from(safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item'));
 
-        if (query) {
-            questions.forEach(question => {
-                const text = question.textContent?.toLowerCase() || '';
-                question.classList.toggle('hidden', query !== '' && !text.includes(query));
-            });
-        }
-    
+        questions.forEach(question => {
+            const type = question.querySelector('span')?.textContent || '';
+            const matchesFilter = this.currentFilter === 'filter-all' ||
+                (this.currentFilter === 'filter-multichoice' && type === 'multichoice') ||
+                (this.currentFilter === 'filter-truefalse' && type === 'truefalse') ||
+                (this.currentFilter === 'filter-shortanswer' && type === 'shortanswer');
+
+            const matchesSearch = !query || question.textContent?.toLowerCase().includes(query);
+            
+            question.classList.toggle('hidden', !(matchesFilter && matchesSearch));
+        });
+
         this.updateActiveFiltersBadge();
     }
 
     private updateActiveFiltersBadge(): void {
         const badgeContainer = safeQuerySelector<HTMLElement>('#active-filters');
-        console.log(badgeContainer);
         if (!badgeContainer) return;
         badgeContainer.innerHTML = '';
 
