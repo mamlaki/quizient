@@ -1,13 +1,54 @@
 <header class="mb-8 text-center block">
     <nav class="flex items-center justify-between w-full max-w-2xl mx-auto">
         <div id="logo">
-            <a href="./" class="hover:text-sky-600 transition-colors">
+            <a href="./" class="hover:text-sky-600 dark:text-gray-100 dark:hover:text-gray-400 transition-colors">
                 <h1 class="text-2xl font-bold">Quizient</h1>
             </a>
         </div>
-        <ul id="nav-items" class="flex space-x-4">
-            <li><a href="about.html" class="text-gray-700 hover:text-sky-600 transition-colors">About</a></li>
-            <li><a href="support.html" class="text-gray-700 hover:text-sky-600 transition-colors">Help</a></li>
+        <ul id="nav-items" class="flex items-center space-x-4">
+            <li><a href="about.html" class="text-gray-700 hover:text-sky-600 dark:text-gray-100 dark:hover:text-gray-400 transition-colors">About</a></li>
+            <li><a href="support.html" class="text-gray-700 hover:text-sky-600 dark:text-gray-100 dark:hover:text-gray-400 transition-colors">Help</a></li>
+            <!-- Theme Toggle -->
+             <li class="relative">
+                <button
+                    id="theme-btn"
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    class="
+                        flex justify-center items-center w-9 h-9 rounded-md 
+                        
+                        text-gray-700 hover:bg-gray-100 
+                        dark:text-gray-100 dark:hover:bg-gray-700 
+                        transition-colors cursor-pointer
+                    "
+                >
+                    <span id="theme-icon"></span>
+                </button>
+                <ul
+                    id="theme-menu"
+                    role="listbox"
+                    data-state="closed"
+                    class="
+                        absolute right-0 mt-1 w-36 z-999
+                        bg-white dark:bg-gray-800 shadow-lg ring-1 ring-gray-200 dark:ring-gray-700
+                        focus:outline-none rounded-md
+                        opacity-0 scale-95 pointer-events-none
+                        transition-opacity transform duration-150 ease-in-out
+                    "
+                >
+                    <li class="theme-option text-gray-900 dark:text-gray-100 select-none py-2 pl-3 pr-9 hover:bg-sky-600 hover:text-white cursor-pointer rounded-md" data-theme="light">
+                        Light
+                    </li>
+                    <li class="theme-option text-gray-900 dark:text-gray-100 select-none py-2 pl-3 pr-9 hover:bg-sky-600 hover:text-white cursor-pointer rounded-md" data-theme="dark">
+                        Dark
+                    </li>
+                    <li class="theme-option text-gray-900 dark:text-gray-100 select-none py-2 pl-3 pr-9 hover:bg-sky-600 hover:text-white cursor-pointer rounded-md" data-theme="auto">
+                        Auto
+                    </li>
+                </ul>
+             </li>
+            <li></li>
         </ul>
     </nav>
 </header>
