@@ -11,7 +11,8 @@ export default defineConfig({
             input: {
                 main: 'index.html',
                 about: 'about.html',
-                support: 'support.html'
+                support: 'support.html',
+                legal: 'legal.html'
             }
         }
     }
