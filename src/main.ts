@@ -3,7 +3,7 @@
 import { XMLBuilder } from 'fast-xml-parser';
 import { read, utils } from 'xlsx';
 // UI/UX
-import { createElement, CircleCheck, CircleX, LoaderCircle } from 'lucide';
+import { createElement, CircleCheck, CircleX, LoaderCircle, Sun, Moon, SunMoon } from 'lucide';
 
 // Web Components
 import './components/SiteHeader';
@@ -491,11 +491,11 @@ class UIController {
         header.className = 'flex justify-between items-center mb-2';
 
         const title = document.createElement('h4');
-        title.className = 'font-bold text-gray-800';
+        title.className = 'font-bold text-gray-800 dark:text-gray-100';
         title.textContent = `Q${index + 1}: ${question.name.text}`;
 
         const typeBadge = document.createElement('span');
-        typeBadge.className = 'text-xs font-semibold uppercase px-2 py-1 rounded-full bg-sky-100 text-sky-700';
+        typeBadge.className = 'text-xs font-semibold uppercase px-2 py-1 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300';
         typeBadge.textContent = question['@_type'];
 
         header.appendChild(title);
@@ -503,10 +503,10 @@ class UIController {
 
         // Questions
         const questionWrapper = document.createElement('div');
-        questionWrapper.className = 'question-preview-item mb-4 p-4 rounded-md bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 ease-in-out';
+        questionWrapper.className = 'question-preview-item mb-4 p-4 rounded-md bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 ease-in-out';
 
         const questionText = document.createElement('p');
-        questionText.className = 'mb-3 text-gray-700';
+        questionText.className = 'mb-3 text-gray-700 dark:text-gray-300';
         questionText.innerHTML = question.questiontext.text['#cdata'];
 
         // Answers
@@ -514,7 +514,7 @@ class UIController {
         answersWrapper.className = 'answers-preview pt-3';
 
         const answersHeader = document.createElement('h5');
-        answersHeader.className = 'text-xs font-semibold text-gray-500 mb-2';
+        answersHeader.className = 'text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2';
         answersHeader.textContent = 'Answers';
         answersWrapper.appendChild(answersHeader);
 
@@ -535,7 +535,7 @@ class UIController {
         const isMultichoice = question['@_type'] === 'multichoice';
         const isTrueFalse = question['@_type'] === 'truefalse';
 
-        list.className = `${isMultichoice ? 'list-none' : 'list-disc'} pl-5 space-y-1 text-gray-600`;
+        list.className = `${isMultichoice ? 'list-none' : 'list-disc'} pl-5 space-y-1 text-gray-600 dark:text-gray-400`;
 
         question.answer.forEach((ans, index) => {
             const listItem = document.createElement('li');
@@ -867,6 +867,96 @@ class FileProcessor {
 
 
 
+// ---------------- Theme Manager Class ----------------
+class ThemeManager {
+    private STORAGE_KEY = 'quizient-theme';
+    private prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    private themeBtn!: HTMLButtonElement | null;
+    private themeMenu!: HTMLUListElement | null;
+    private themeIcon!: HTMLElement | null;
+
+    constructor() {
+        this.waitForHeader().then(() => {
+            this.applyTheme(this.getSavedTheme() || 'auto');
+            this.init();
+        });
+    }
+
+    private waitForHeader(): Promise<void> {
+        return new Promise(resolve => {
+            const ready = () => {
+                this.themeBtn = safeQuerySelector<HTMLButtonElement>('#theme-btn');
+                this.themeMenu = safeQuerySelector<HTMLUListElement>('#theme-menu');
+                this.themeIcon = safeQuerySelector<HTMLElement>('#theme-icon');
+                if (this.themeBtn && this.themeMenu && this.themeIcon) {
+                    resolve();
+                } else {
+                    requestAnimationFrame(ready);
+                }
+            };
+            ready();
+        });
+    }
+
+    private init() {
+        if (!this.themeBtn || !this.themeMenu) return;
+
+        this.themeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.setMenuState(this.themeMenu!.dataset.state !== 'open');
+        });
+
+        document.addEventListener('click', () => this.setMenuState(false));
+
+        this.themeMenu.addEventListener('click', (e) => {
+            const li = (e.target as HTMLElement).closest('.theme-option') as HTMLLIElement | null;
+            if (!li) return;
+            const choice = li.dataset.theme as 'light' | 'dark' | 'auto';
+            this.saveTheme(choice);
+            this.applyTheme(choice);
+            this.setMenuState(false);
+        });
+
+        this.prefersDark.addEventListener('change', () => {
+            if (this.getSavedTheme() === 'auto') this.applyTheme('auto');
+        });
+    }
+
+    private setMenuState(open: boolean) {
+        if (!this.themeBtn || !this.themeMenu) return;
+        this.themeMenu.dataset.state = open ? 'open' : 'closed';
+        this.themeBtn.setAttribute('aria-expanded', String(open));
+    }
+
+    private saveTheme(theme: string) { localStorage.setItem(this.STORAGE_KEY, theme); }
+
+    private getSavedTheme(): 'light' | 'dark' | 'auto' | null {
+        const theme = localStorage.getItem(this.STORAGE_KEY);
+        if (theme === 'light' || theme === 'dark' || theme === 'auto' || theme === null) {
+            return theme;
+        } 
+        return null;
+    }
+
+    private applyTheme(mode: 'light' | 'dark' | 'auto') {
+        const isDark = mode === 'dark' || (mode === 'auto' && this.prefersDark.matches);
+        document.documentElement.classList.toggle('dark', isDark);
+        this.setThemeIcon(mode);
+    }
+
+    private setThemeIcon(mode: 'light' | 'dark' | 'auto') {
+        if (!this.themeIcon) return;
+        this.themeIcon.innerHTML = '';
+        const icon = mode === 'light' ? createElement(Sun, { size: 18 }) : mode === 'dark' ? createElement(Moon, { size: 18 }) : createElement(SunMoon, { size: 18 });
+        this.themeIcon.appendChild(icon);
+    }
+}
+
+
+// ---------------- END OF: Theme Manager Class ----------------
+
+
+
 // ---------------- Main App Init ----------------
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize ccomponents using classes
@@ -889,13 +979,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const $clearFilesBtn = safeQuerySelector<HTMLButtonElement>('#clear-files-btn');
     const $convertBtn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
 
+    new ThemeManager();
+
     const refreshFileList = () => {
         if (!$fileList || !$fileActions) return;
 
         $fileList.innerHTML = '';
         selectedFiles.forEach((file, i) => {
             const item = document.createElement('div');
-            item.className = 'relative flex items-center px-3 py-2 gap-2 bg-white rounded shadow';
+            item.className = 'relative flex items-center px-3 py-2 gap-2 bg-white dark:bg-gray-700 rounded shadow';
             item.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-spreadsheet-icon lucide-file-spreadsheet"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/></svg>
                 <span class="text-sm">${file.name}</span>

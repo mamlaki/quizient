@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="/src/styles.css">
   <title>Quizient</title>
 </head>
-<body class="p-8">
+<body class="p-8 bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100">
   <site-header>
     <div class="min-h-70 max-w-lg"></div>
   </site-header>
@@ -24,6 +24,7 @@
         cursor-pointer
         transition hover:border-green-600 hover:animate-none
         animate-[breathing-border_3s_ease-in-out_infinite]
+        dark:border-gray-600 dark:text-gray-300 dark:hover:border-emerald-400
       "    
     >
       <span>Drag and drop your file(s) here, or click to select</span>
@@ -56,19 +57,21 @@
           class="
             absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md
             bg-white py-1 text-base shadow-lg ring-1 ring-gray-200
+            dark:bg-gray-800
+            dark:ring-gray-700
             focus:outline-none sm:text-sm
           "
         > 
-          <li role="option" data-format="xlsx" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+          <li role="option" data-format="xlsx" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
             <span class="font-normal block truncate">Excel (.xlsx)</span>
           </li>
-          <li role="option" data-format="xls" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+          <li role="option" data-format="xls" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
             <span class="font-normal block truncate">Excel 97-2004 (.xls)</span>
           </li>
-          <li role="option" data-format="csv" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+          <li role="option" data-format="csv" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
             <span class="font-normal block truncate">CSV (.csv)</span>
           </li>
-          <li role="option" data-format="ods" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
+          <li role="option" data-format="ods" class="template-option relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-sky-600 hover:text-white cursor-pointer transition-colors">
             <span class="font-normal block truncate">OpenDocument (.ods)</span>
           </li>
         </ul>
@@ -102,6 +105,7 @@
       id="log"
       class="
         bg-gray-100
+        dark:bg-gray-700
         mx-auto mb-6 p-4
         rounded-md
         text-sm font-mono
@@ -123,7 +127,7 @@
       
       <div class="flex justify-between items-center mb-2 gap-2">
         <div class="flex flex-wrap items-center gap-2">
-          <h3 class="text-lg text-gray-700 font-semibold">Preview</h3>
+          <h3 class="text-lg text-gray-700 dark:text-gray-300 font-semibold">Preview</h3>
           <div id="active-filters" class="flex items-center gap-2"></div>
         </div>
         <!-- Preivew Controls --> 
@@ -199,21 +203,21 @@
               data-state="closed"
               class="
                 absolute right-0 w-48 mt-1 py-1 z-999
-                bg-white ring-gray-200 rounded-md shadow-lg text-sm
+                bg-white dark:bg-gray-700 ring-gray-200 dark:ring-gray-700 rounded-md shadow-lg text-sm
                 focus:outline-none
               "
             >
               <!-- Filter Options -->
-              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-all">All questions</li>
-              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-multichoice">Multiple-choice</li>
-              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-truefalse">True / False</li>
-              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-shortanswer"> Short answer</li>
+              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-all">All questions</li>
+              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-multichoice">Multiple-choice</li>
+              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-truefalse">True / False</li>
+              <li class="filter-option relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="filter-shortanswer"> Short answer</li>
 
-              <li class="border-gray-200 border-t my-1"></li>
+              <li class="border-gray-200 dark:border-gray-400 border-t my-1"></li>
 
               <!-- Sorting Options -->
-              <li class="filter-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="sort-az">Title A–Z</li>
-              <li class="filter-option group relative select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="sort-za">Title Z–A</li>
+              <li class="filter-option group relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="sort-az">Title A–Z</li>
+              <li class="filter-option group relative select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100 hover:bg-amber-500 hover:text-white cursor-pointer transition-colors" data-action="sort-za">Title Z–A</li>
             </ul>
           </div>
         </div>
@@ -225,6 +229,7 @@
         id="preview"
         class="
           bg-gray-100
+          dark:bg-gray-700
           text-sm
           w-full max-h-[80vh] min-h-40 relative
           p-4 rounded-md

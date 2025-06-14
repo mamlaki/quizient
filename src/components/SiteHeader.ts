@@ -35,7 +35,7 @@ class SiteHeader extends HTMLElement {
 
             if (linkPath === currentPath) {
                 link.classList.remove('text-gray-700');
-                link.classList.add('text-sky-600');
+                link.classList.add('text-sky-600', 'dark:text-sky-400');
             } else {
                 link.classList.remove('text-sky-600');
                 link.classList.add('text-gray-700');

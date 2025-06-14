@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* Dark Mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @keyframes breathing-border {
     0%, 100% {
         border-color: var(--color-gray-300);
@@ -26,17 +29,23 @@ site-footer.loaded {
 }
 
 /* Home Page - Template Dropdown */
-#template-dropdown-menu {
+#template-dropdown-menu,
+#filter-dropdown-menu,
+#theme-menu {
     transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
 }
 
-#template-dropdown-menu[data-state='closed'] {
+#template-dropdown-menu[data-state='closed'],
+#filter-dropdown-menu[data-state='closed'],
+#theme-menu[data-state='closed'] {
     opacity: 0;
     transform: scale(0.95);
     pointer-events: none;
 }
 
-#template-dropdown-menu[data-state='open'] {
+#template-dropdown-menu[data-state='open'],
+#filter-dropdown-menu[data-state='open'],
+#theme-menu[data-state='open'] {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
@@ -45,21 +54,4 @@ site-footer.loaded {
 /* Home Page - Preview Search */
 #search-input {
     transform-origin: 100% 50%;
-}
-
-/* Home Page - Preview Filter/Sort */
-#filter-dropdown-menu {
-    transition: opacity 150ms ease-in-out, transform 150ms ease-in-out;
-}
-
-#filter-dropdown-menu[data-state='closed'] {
-    opacity: 0;
-    transform: scale(0.95);
-    pointer-events: none;
-}
-
-#filter-dropdown-menu[data-state='open'] {
-    opacity: 1;
-    transform: scale(1);
-    pointer-events: auto;
 }
