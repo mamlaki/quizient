@@ -4,6 +4,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="
+      default-src 'self';
+      script-src 'self';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data:;
+      connect-src 'self';
+      object-src 'none';
+      base-uri 'self';
+      upgrade-insecure-requests;
+    ">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
   <link rel="stylesheet" href="/src/styles.css">
   <title>About | Quizient</title>
 </head>
@@ -106,7 +121,7 @@
           " 
             href="https://docs.moodle.org/500/en/Moodle_XML_format" 
             target="_blank" 
-            rel="noopener"
+            rel="noopener noreferrer"
           >
             Moodle&reg; XML
           </a>
@@ -124,7 +139,7 @@
             hover:text-sky-700 hover:bg-sky-50 rounded 
             px-0.5 
             transition-colors
-          " href="https://moodle.org/" target="_blank" rel="noopener">
+          " href="https://moodle.org/" target="_blank" rel="noopener noreferrer">
             Moodle&reg;
           </a>
           as part of a custom solution for our project sponsors, who were looking for a reliable platform for
@@ -160,7 +175,7 @@
             hover:text-sky-700 hover:bg-sky-50 rounded 
             px-1 
             transition-colors
-          " href="https://github.com/mamlaki/quizient" target="_blank" rel="noopener">
+          " href="https://github.com/mamlaki/quizient" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>
           repo to take a look at the code itself or to run the app locally!
@@ -186,7 +201,7 @@
               hover:text-sky-700 hover:bg-sky-50 rounded 
               px-1 
               transition-colors
-            " href="https://vite.dev/" target="_blank" rel="noopener">
+            " href="https://vite.dev/" target="_blank" rel="noopener noreferrer">
               Vite
             </a>
           </li>
@@ -196,7 +211,7 @@
               hover:text-sky-700 hover:bg-sky-50 rounded 
               px-1 
               transition-colors
-            " href="https://www.typescriptlang.org/" target="_blank" rel="noopener">
+            " href="https://www.typescriptlang.org/" target="_blank" rel="noopener noreferrer">
               TypeScript
             </a>
           </li>
@@ -206,7 +221,7 @@
               hover:text-sky-700 hover:bg-sky-50 rounded 
               px-1 
               transition-colors
-            " href="https://sheetjs.com/" target="_blank" rel="noopener">
+            " href="https://sheetjs.com/" target="_blank" rel="noopener noreferrer">
               SheetJS
             </a>
           </li>
@@ -217,7 +232,7 @@
               px-1 
               transition-colors
             " href="https://github.com/NaturalIntelligence/fast-xml-parser#readme" target="_blank"
-              rel="noopener">
+              rel="noopener noreferrer">
               fast-xml-parser
             </a>
           </li>
@@ -227,7 +242,7 @@
               hover:text-sky-700 hover:bg-sky-50 rounded 
               px-1 
               transition-colors
-            " href="https://formspree.io/" target="_blank" rel="noopener">
+            " href="https://formspree.io/" target="_blank" rel="noopener noreferrer">
               Formspree
             </a>
           </li>
@@ -237,7 +252,7 @@
               hover:text-sky-700 hover:bg-sky-50 rounded 
               px-1 
               transition-colors
-            " href="https://tailwindcss.com/" target="_blank" rel="noopener">
+            " href="https://tailwindcss.com/" target="_blank" rel="noopener noreferrer">
               Tailwind CSS
             </a>
           </li>
@@ -247,7 +262,7 @@
               hover:text-sky-700 hover:bg-sky-50 rounded 
               px-1 
               transition-colors
-            " href="https://lucide.dev/" target="_blank" rel="noopener">
+            " href="https://lucide.dev/" target="_blank" rel="noopener noreferrer">
               Lucide
             </a>
           </li>
@@ -257,7 +272,7 @@
               hover:text-sky-700 hover:bg-sky-50 rounded 
               px-1 
               transition-colors
-            " href="https://pages.github.com/" target="_blank" rel="noopener">
+            " href="https://pages.github.com/" target="_blank" rel="noopener noreferrer">
               GitHub Pages
             </a>
           </li>
