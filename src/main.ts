@@ -5,6 +5,8 @@ import { read, utils } from 'xlsx';
 // UI/UX
 import { createElement, CircleCheck, CircleX, LoaderCircle, Sun, Moon, SunMoon } from 'lucide';
 
+import DOMPurify from 'dompurify';
+
 // Web Components
 import './components/SiteHeader';
 import './components/SiteFooter';
@@ -507,7 +509,11 @@ class UIController {
 
         const questionText = document.createElement('p');
         questionText.className = 'mb-3 text-gray-700 dark:text-gray-300';
-        questionText.innerHTML = question.questiontext.text['#cdata'];
+        // DOMPurify to sanitize 
+        questionText.innerText = DOMPurify.sanitize(
+            question.questiontext.text['#cdata'], { ALLOWED_URI_REGEXP: /^(?!javascript:)/i }
+        );
+
 
         // Answers
         const answersWrapper = document.createElement('div');
