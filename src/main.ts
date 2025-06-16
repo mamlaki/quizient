@@ -766,8 +766,6 @@ class FileProcessor {
         let totalRowsProcessed = 0;
 
         for (const sheetName of wb.SheetNames) {
-            console.log(`Processing sheet: ${sheetName}`);
-
             const sheet = wb.Sheets[sheetName];
             const rows = utils.sheet_to_json<Row>(sheet, { raw: false });
             totalRowsProcessed += rows.length;
@@ -775,10 +773,6 @@ class FileProcessor {
             const questionsFromSheet = rows.map(row => this.rowToQuestion(row)).filter((question): question is Question => question !== null);
 
             allQuestions = allQuestions.concat(questionsFromSheet);
-
-            if (rows.length > 0) {
-                console.log(`Found ${rows.length} rows in sheet "${sheetName}", generated ${questionsFromSheet.length} questions.`);
-            }
         }
 
         return { questions: allQuestions, totalRows: totalRowsProcessed };
