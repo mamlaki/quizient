@@ -1,5 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap');
+
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
+
+@theme {
+    --font-exo: "Exo 2", sans-serif;
+}
 
 /* Dark Mode */
 @custom-variant dark (&:where(.dark, .dark *));
