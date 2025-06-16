@@ -435,6 +435,10 @@ class UIController {
         this.log?.classList.remove('hidden');
     }
 
+    hideLog(): void {
+        this.log?.classList.add('hidden');
+    }
+
     clearLog(): void {
         if (this.log) {
             this.log.innerHTML = '';
@@ -685,7 +689,7 @@ class FileProcessor {
     }
 
     async processFiles(files: File[]): Promise<void> {
-        this.resetUI();
+        this.clearAll();
 
         const allQuestions: Question[] = [];
         let totalRows = 0;
@@ -732,12 +736,15 @@ class FileProcessor {
         return this.xmlString;
     }
 
-    private resetUI(): void {
+    public clearAll(): void {
         this.ui.clearLog();
+        this.ui.hideLog();
         this.logQueue.clear();
         this.ui.hideDownloadBtn();
         this.ui.clearPreview();
         this.ui.hidePreview();
+        this.xmlString = '';
+        this.questions = [];
     }
 
     private validateFileType(file: File): { isValid: boolean; description?: string; errorMessage?: string } {
@@ -1125,6 +1132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $clearFilesBtn.addEventListener('click', () => {
             selectedFiles.length = 0;
             refreshFileList();
+            fileProcessor.clearAll();
         });
 
         $fileList.addEventListener('click', (e) => {
