@@ -1035,7 +1035,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const templateUrl = `${import.meta.env.BASE_URL}${fileName}`;
         Object.assign(document.createElement('a'), {
             href: templateUrl,
-            download: fileName
+            download: fileName,
+            rel: 'noopener noreferrer',
+            referrerPolicy: 'no-referrer'
         }).click();
     };
    
@@ -1153,7 +1155,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Create hidden link that is auto clicked which downloads the file}
             Object.assign(document.createElement('a'), {
                 href: url,
-                download: 'questions.xml'
+                download: 'questions.xml',
+                rel: 'noopener noreferrer',
+                referrerPolicy: 'no-referrer'
             }).click();
         
             URL.revokeObjectURL(url); // revokes the temp blob url
