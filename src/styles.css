@@ -1,7 +1,15 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 
 /* Dark Mode */
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* Font Sizes */
+@layer base {
+    body { @apply text-base md:text-lg lg:text-xl; }
+    h2 { @apply text-3xl md:text-4xl lg:text-5xl; }
+    h3 { @apply text-xl md:text-2xl lg:text-3xl; }
+}
 
 @keyframes breathing-border {
     0%, 100% {

@@ -26,7 +26,7 @@
     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu-icon lucide-menu"><path d="M4 12h16" /><path d="M4 18h16" /><path d="M4 6h16" /></svg>
   </button>
   <!-- Content Wrapper -->
-  <div class="flex flex-row-reverse relative gap-12 max-w-2xl mx-auto">
+  <div class="flex flex-row-reverse relative gap-12 max-w-3xl mx-auto prose md:prose-base lg:prose-lg dark:prose-invert">
     <!-- Side Nav -->
     <aside id="page-nav" class="
       fixed inset-0 z-40 p-6
@@ -50,11 +50,12 @@
           class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
         </button>
       </div>
+      <!-- Desktop TOC -->
       <nav>
-        <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-200 uppercase tracking-wider mb-3 hidden lg:block">
+        <h4 class="text-sm text-gray-500 dark:text-gray-200 uppercase tracking-wider mb-3 hidden lg:block">
           Table of Contents
         </h4>
-        <ul class="space-y-2">
+        <ul class="space-y-2 not-prose">
           <li>
             <a href="#what-is-quizient" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
               What is Quizient?
@@ -90,10 +91,10 @@
     </aside>
     <!-- Main Content -->
     <main>
-      <h2 class="text-3xl text-gray-800 dark:text-gray-300 mb-6">About Quizient</h2>
+      <h2 class="dark:text-gray-300">About Quizient</h2>
       <!-- About -->
-      <section id="what-is-quizient" class="mb-6 pb-6 border-b border-gray-300">
-        <h3 class="text-xl font-semibold mb-2">What is Quizient?</h3>
+      <section id="what-is-quizient" class=" pb-4 border-b border-gray-300">
+        <h3>What is Quizient?</h3>
         <p>
           Quizient is a simple tool designed to help educators and administrators convert spreadsheet-based question
           banks into the
@@ -114,9 +115,9 @@
         </p>
       </section>
       <!-- Why? -->
-      <section id="why-exist" class="mb-6 pb-6 border-b border-gray-300">
-        <h3 class="text-xl font-semibold mb-2">Why Does This Exist?</h3>
-        <p class="mb-4">
+      <section id="why-exist" class="pb-4 border-b border-gray-300">
+        <h3>Why Does This Exist?</h3>
+        <p>
           During my Bachelor of Technology (BTech) degree capstone project, my team recommended
           <a class="
             text-sky-600 font-medium underline underline-offset-2 
@@ -136,18 +137,18 @@
           seamlessly.
         </p>
       </section>
-      <section id="who-for" class="mb-6 pb-6 border-b border-gray-300">
-        <h3 class="text-xl font-semibold mb-2">Who's This For?</h3>
-        <ul class="list-disc pl-4">
+      <section id="who-for" class="pb-4 border-b border-gray-300">
+        <h3>Who's This For?</h3>
+        <ul>
           <li>Instructors using Moodle for quizzes or exams</li>
           <li>Course coordinators managing large question banks</li>
           <li>Administrators or IT staff managing Moodle instance(s) for an organization</li>
           <li>Anyone who wants a faster way to bulk import questions into Moodle</li>
         </ul>
       </section>
-      <section id="how-it-works" class="mb-6 pb-6 border-b border-gray-300">
-        <h3 class="text-xl font-semibold mb-2">How It Works</h3>
-        <ol class="list-decimal mb-4 pl-4">
+      <section id="how-it-works" class="pb-4 border-b border-gray-300">
+        <h3>How It Works</h3>
+        <ol>
           <li>Upload your spreadsheet (.xlsx, .xls, .ods, or .csv)</li>
           <li>Each row becomes a question (Multiple Choice, True/False, Short Answer)</li>
           <li>Quizient generates a Moodle-compatible XML file</li>
@@ -165,9 +166,9 @@
           repo to take a look at the code itself or to run the app locally!
         </p>
       </section>
-      <section id="features" class="mb-6 pb-6 border-b border-gray-300">
-        <h3 class="text-xl font-semibold mb-2">Features</h3>
-        <ul class="list-disc pl-4">
+      <section id="features" class="pb-4 border-b border-gray-300">
+        <h3>Features</h3>
+        <ul>
           <li>Supports multiple question types</li>
           <li>Accepts alternate short answer responses</li>
           <li>Wildcard support for partial short answer matches</li>
@@ -175,10 +176,10 @@
           <li>Built-in validation for common errors</li>
         </ul>
       </section>
-      <section id="acknowledgements" class="mb-6">
-        <h3 class="text-xl font-semibold mb-2">Acknowledgements</h3>
-        <p class="mb-2">Built using:</p>
-        <ul class="pl-2 mb-6 space-y-2">
+      <section id="acknowledgements">
+        <h3>Acknowledgements</h3>
+        <p>Built using:</p>
+        <ul>
           <li>
             <a class="
               text-sky-600 font-medium underline underline-offset-2 

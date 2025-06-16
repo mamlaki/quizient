@@ -30,7 +30,7 @@
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu-icon lucide-menu"><path d="M4 12h16" /><path d="M4 18h16" /> <path d="M4 6h16" /></svg>
   </button>
   <!-- Content Wrapper -->
-  <div class="flex flex-row-reverse relative gap-12 max-w-2xl mx-auto">
+  <div class="flex flex-row-reverse relative gap-12 max-w-3xl mx-auto prose md:prose-base lg:prose-lg dark:prose-invert">
     <!-- Side Nav -->
     <aside 
       id="page-nav" 
@@ -60,10 +60,10 @@
         </button>
       </div>
       <nav>
-        <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-200 uppercase tracking-wider hidden lg:block mb-3">
+        <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-200 uppercase tracking-wider hidden lg:block !mb-3">
           Table of Contents
         </h4>
-        <ul class="space-y-2">
+        <ul class="space-y-2 not-prose">
           <li>
             <a href="#getting-started" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
               Get Started
@@ -84,11 +84,11 @@
     </aside>
     <!-- Main Content -->
     <main>
-      <h2 class="text-3xl text-gray-800 dark:text-gray-300 mb-8">Need Help?</h2>
+      <h2 class="text-gray-800 dark:text-gray-300">Need Help?</h2>
       <!-- Support -->
-      <section id="getting-started" class="mb-8 pb-6 border-b border-gray-300">
-        <h3 class="text-xl font-semibold mb-4">Getting Started</h3>
-        <ol class="list-decimal pl-4 space-y-4">
+      <section id="getting-started" class="pb-4 border-b border-gray-300">
+        <h3>Getting Started</h3>
+        <ol>
           <li>
             Use the
             <a class="
@@ -116,8 +116,8 @@
           </li>
         </ol>
       </section>
-      <section id="formatting-spreadsheet" class="mb-8 pb-6 border-b border-gray-300">
-        <h3 class="text-xl font-semibold mb-4">Formatting Your Spreadsheet</h3>
+      <section id="formatting-spreadsheet" class="pb-4 border-b border-gray-300">
+        <h3>Formatting Your Spreadsheet</h3>
         <p class="mb-4">
           Use the
           <a class="
@@ -131,7 +131,7 @@
           </a>
           or create your own with each row representing a question (Column Name = Cell Value):
         </p>
-        <ul class="list-disc pl-4 mb-4">
+        <ul>
           <li>
             <strong>Multiple Choice Row</strong>:<br>
             Type = "MC", Title, Question, OptionA-D, Correct (e.g., "A")
@@ -150,9 +150,9 @@
           You can store questions, of any type, in several sheets, organized any way you like.
         </p>
       </section>
-      <section id="contact" class="mb-10 pb-6 dark:text-gray-100">
-        <h3 class="text-xl font-semibold mb-4 dark:text-gray-300">Still Unsure?</h3>
-        <p class="mb-2 dark:text-gray-300">If you're still confused, have any questions or suggestions, use the form below to contact me
+      <section id="contact" class="mb-10 pb-4">
+        <h3>Still Unsure?</h3>
+        <p>If you're still confused, have any questions or suggestions, use the form below to contact me
           directly:</p>
         <form id="contact-form" action="https://formspree.io/f/mpwdvrpq" method="POST" class="space-y-4">
           <fieldset class="space-y-4 mt-8">
