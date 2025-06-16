@@ -664,6 +664,11 @@ class FileProcessor {
     private xmlString = ""; // Final XML output container
     private questions: Question[] = [];
 
+    // File Limits
+    private readonly MAX_FILE_SIZE_MB = 5;
+    private readonly MAX_FILE_SIZE = this.MAX_FILE_SIZE_MB * 1024 * 1024;
+    private readonly MAX_TOTAL_ROWS = 5000;
+
     // File types
     private readonly supportedFileTypes: Record<string, string> = {
         'text/csv': 'CSV',
@@ -671,6 +676,8 @@ class FileProcessor {
         'application/vnd.ms-excel': 'XLS',
         'application/vnd.oasis.opendocument.spreadsheet': 'ODS'
     };
+
+    private readonly supportedExtensions = ['.csv', '.xlsx', '.xls', '.ods'];
 
     constructor(ui: UIController, logQueue: LogQueue) {
         this.ui = ui;
@@ -685,6 +692,12 @@ class FileProcessor {
         
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
+
+            if (file.size > this.MAX_FILE_SIZE) {
+                this.logQueue.add(`${file.name} is ${(file.size / (1024 * 1024)).toFixed(1)}MiB - max allowed is ${this.MAX_FILE_SIZE_MB} MiB`, undefined, 'error');
+                continue;
+            }
+            
             this.logQueue.add(`Loading (${i + 1}/${files.length}): ${file.name}`);
             
             const fileTypeInfo = this.validateFileType(file);
@@ -699,6 +712,11 @@ class FileProcessor {
             try {
                 const { questions, totalRows: rows } = await this.parseFile(file);
                 totalRows += rows;
+                if (totalRows > this.MAX_TOTAL_ROWS) {
+                    this.logQueue.add(`Row limit exceeded (${this.MAX_TOTAL_ROWS}).`, undefined, 'error');
+                    break;
+                }
+
                 allQuestions.push(...questions);
             } catch (error) {
                 console.error(`Error processing ${file.name}: `, error);
@@ -729,8 +747,9 @@ class FileProcessor {
             return { isValid: true, description: fileTypeDesc};
         }
 
-        if (file.type === '' || file.type === 'application/octet-stream') { // Unknown file
-            return { isValid: true, description: 'Unknown' };
+        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        if (this.supportedExtensions.includes(ext)) {
+            return { isValid: true, description: ext.toUpperCase().replace('.', '') };
         }
 
         return {
