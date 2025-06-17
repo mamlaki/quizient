@@ -15,6 +15,7 @@ class SiteHeader extends HTMLElement {
             this.innerHTML = headerHTML;
             this.classList.add('loaded');
             this.updateNavLinks();
+            this.initScrollTransition();
         } catch (error) {
             console.error('Error loading header: ', error);
             this.classList.add('loaded');
@@ -41,6 +42,18 @@ class SiteHeader extends HTMLElement {
                 link.classList.add('text-gray-700');
             }
         })
+    }
+
+    private initScrollTransition() {
+        const header = this.querySelector('#main-header');
+        if (!header) return;
+
+        const toggle = () => {
+            header.classList.toggle('scrolled', window.scrollY > 10);
+        };
+
+        toggle();
+        window.addEventListener('scroll', toggle);
     }
 }
 

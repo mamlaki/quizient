@@ -17,6 +17,17 @@
     h3 { @apply text-xl md:text-2xl lg:text-3xl; }
 }
 
+@layer components {
+    #main-header.scrolled {
+        @apply
+            sticky top-1 z-9999
+            p-5 rounded-3xl
+            bg-gray-100/90 dark:bg-gray-800/90
+            backdrop-blur-sm shadow-md
+            transition-all duration-300 ease-in-out
+    }
+}
+
 @keyframes breathing-border {
     0%, 100% {
         border-color: var(--color-gray-300);
