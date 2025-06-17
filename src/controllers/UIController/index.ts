@@ -7,6 +7,9 @@
 import { safeQuerySelector, safeQuerySelectorAll } from "../../utils/dom";
 import { TRANSITION_DURATION, FADE_IN_DELAY } from "../../constants";
 
+// Sub-controllers
+import DownloadButton from "./DownloadButton";
+
 // Third-Party imports
 import DOMPurify from "dompurify";
 import { createElement, LoaderCircle } from "lucide";
@@ -27,7 +30,8 @@ export type Question = {
 
 
 export default class UIController {
-  private btn: HTMLButtonElement | null;
+  private downloadButton = new DownloadButton();
+
   private log: HTMLElement | null;
   private previewContainer: HTMLElement | null;
   private preview: HTMLElement | null;
@@ -36,11 +40,11 @@ export default class UIController {
   private searchInput: HTMLInputElement | null;
   private filterBtn: HTMLButtonElement | null;
   private filterMenu: HTMLUListElement | null;
+
   private currentFilter: string = 'filter-all';
   private currentSort: string = 'sort-az';
   
   constructor() {
-      this.btn = safeQuerySelector<HTMLButtonElement>('#download-btn');
       this.log = safeQuerySelector<HTMLElement>('#log');
 
 
@@ -271,28 +275,13 @@ export default class UIController {
   }
   // ----- ENDOF: SEARCH -----
 
-
-  // DOWNLOAD BUTTON
   showDownloadBtn(): void {
-      if (!this.btn) return;
-      
-      this.btn.classList.remove('hidden');
-      requestAnimationFrame(() => {
-          this.btn!.classList.remove('opacity-0');
-          this.btn!.classList.add('opacity-100');
-      }); 
+    this.downloadButton.show();
   }
 
   hideDownloadBtn(): void {
-      if (!this.btn) return;
-
-      this.btn.classList.remove('opacity-100');
-      this.btn.classList.add('opacity-0');
-      setTimeout(() => {
-          this.btn!.classList.add('hidden');
-      }, TRANSITION_DURATION);
+    this.downloadButton.hide();
   }
-  // ----- ENDOF: DOWNLOAD BUTTON -----
 
 
   // LOG
