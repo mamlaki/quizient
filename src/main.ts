@@ -11,16 +11,11 @@ import DOMPurify from 'dompurify';
 import './components/SiteHeader';
 import './components/SiteFooter';
 
-// Constants
-const TRANSITION_DURATION = 300;
-const TAILWIND_LG_BREAKPOINT = 1024;
-const LOG_QUEUE_DELAY = 400;
-const FADE_IN_DELAY = 10;
+// utils - querySelectors
+import { safeQuerySelector, safeQuerySelectorAll } from './utils/dom';
+// utils - constants
+import { TRANSITION_DURATION, TAILWIND_LG_BREAKPOINT, LOG_QUEUE_DELAY, FADE_IN_DELAY } from './constants';
 
-// -------- Utilities --------
-// Type-safe Queries
-const safeQuerySelector = <T extends HTMLElement>(selector: string): T | null => document.querySelector(selector) as T | null;
-const safeQuerySelectorAll = <T extends HTMLElement>(selector: string): NodeListOf<T> => document.querySelectorAll(selector) as NodeListOf<T>;
 
 // -------- Types --------
 type LogEntry = {
