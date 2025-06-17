@@ -36,7 +36,102 @@
   <site-header>
     <div class="min-h-70 max-w-lg"></div>
   </site-header>
-  <div class="mx-auto max-w-3xl prose md:prose-base lg:prose-lg dark:prose-invert">
+    <!-- Mobile Side Nav Toggle -->
+    <button id="toc-toggle" aria-label="Open table of contents" aria-controls="page-nav" aria-expanded="false" class="
+    lg:hidden fixed bottom-5 right-5 z-50
+    p-3
+    bg-sky-600
+    text-white
+    rounded-full shadow-md
+    hover:bg-sky-700 
+    transition-colors
+  ">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu-icon lucide-menu"><path d="M4 12h16" /><path d="M4 18h16" /><path d="M4 6h16" /></svg>
+  </button>
+  <div class="flex flex-row-reverse relative gap-12 max-w-3xl mx-auto prose md:prose-base lg:prose-lg dark:prose-invert">
+       <!-- Side Nav -->
+       <aside id="page-nav" class="
+       fixed inset-0 z-40 p-6
+       bg-white dark:bg-gray-900
+       overflow-y-auto transform -translate-x-full
+       transition-transform duration-300 ease-in-out
+       lg:inset-auto lg:z-auto lg:bg-transparent lg:overflow-y-visible lg:transform-none lg:w-1/2 lg:sticky lg:top-24 lg:self-start lg:py-4 lg:p-0 lg:translate-x-0
+     ">
+       <!-- Mobile TOC Header -->
+       <div class="flex justify-between items-center lg:hidden mb-6 border-b pb-4">
+         <h4>
+           Table of Contents
+         </h4>
+         <button id="toc-close" aria-label="Close table fo contents" class="
+           p-1 rounded-md
+           text-gray-500 
+           hover:text-sky-600
+         ">
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+         </button>
+       </div>
+       <!-- Desktop TOC -->
+       <nav>
+         <h4 class="text-sm text-gray-500 dark:text-gray-200 uppercase tracking-wider mb-3 hidden lg:block">
+           Table of Contents
+         </h4>
+         <ul class="space-y-2 not-prose">
+           <li>
+             <a href="#intro" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+               1. Introduction
+             </a>
+           </li>
+           <li>
+             <a href="#data-collection" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+               2. What Data Is Collected?
+             </a>
+           </li>
+           <li>
+             <a href="#processing" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+               3. How Is Your Data Processed?
+             </a>
+           </li>
+           <li>
+             <a href="#storage" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+               4. Storage & Retention
+             </a>
+           </li>
+           <li>
+             <a href="#hosting" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+               5. Hosting & Server Logs (GitHub Pages)
+             </a>
+           </li>
+           <li>
+             <a href="#third-party" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+               6. Third-Party Libraries
+             </a>
+           </li>
+           <li>
+            <a href="#security" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+              7. Security
+            </a>
+          </li>
+          <li>
+            <a href="#audience" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+              8. Audience
+            </a>
+          </li>
+          <li>
+            <a href="#changes" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+              9. Policy Changes
+            </a>
+          </li>
+          <li>
+            <a href="#contact" class="text-gray-600 dark:text-gray-300 hover:text-sky-600 text-sm block toc-link">
+              10. Contact
+            </a>
+          </li>
+         </ul>
+       </nav>
+     </aside>
     <main>
         <h2 class="bg-gray-800 text-gray-100 p-3 dark:bg-gray-100 dark:text-gray-800">Privacy Policy</h2>
         <p>Last updated: June 16, 2025</p>
