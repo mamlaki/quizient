@@ -609,6 +609,8 @@ class LogQueue {
     private queue: LogEntry[] = [];
     private isProcessing = false;
     private ui: UIController;
+    private completionPromise: Promise<void> | null = null;
+    private completionResolve: (() => void) | null = null;
 
     constructor(ui: UIController) {
         this.ui = ui;
@@ -622,10 +624,26 @@ class LogQueue {
     clear(): void {
         this.queue = [];
         this.isProcessing = false;
+        if (this.completionResolve) {
+            this.completionResolve();
+            this.completionPromise = null;
+            this.completionResolve = null;
+        }
     }
 
     private process(): void {
-        if (this.isProcessing || this.queue.length === 0) return;
+        if (this.isProcessing) return;
+
+        if (this.queue.length === 0) {
+            this.isProcessing = false;
+            if (this.completionResolve) {
+                this.completionResolve();
+                this.completionPromise = null;
+                this.completionResolve = null;
+            }
+            return;
+        }
+        
 
         this.isProcessing = true;
         const { message, callback, logType = 'info' } = this.queue.shift()!;
@@ -655,6 +673,20 @@ class LogQueue {
             : createElement(CircleCheck, { size: 18, class: 'log-icon-updated text-green-600' });
 
         loadingIcon.replaceWith(icon);
+    }
+
+    getCompletionPromise(): Promise<void> {
+        if (!this.isProcessing && this.queue.length === 0) {
+            return Promise.resolve();
+        }
+
+        if (!this.completionPromise) {
+            this.completionPromise = new Promise(resolve => {
+                this.completionResolve = resolve;
+            });
+        }
+
+        return this.completionPromise;
     }
 }
 // ---------------- END OF: Log Queue Class ----------------
@@ -730,6 +762,7 @@ class FileProcessor {
 
         this.questions = allQuestions;
         this.generateXML({ questions: allQuestions, totalRows }, files.map(f => f.name).join(', '));
+        return this.logQueue.getCompletionPromise();
     }
 
     getXMLString(): string {
