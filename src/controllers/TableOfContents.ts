@@ -1,3 +1,13 @@
+/**
+ * src/controllers/TableOfContents.ts
+ * ----------------------------------
+ * Controller that manages the responsive Table of Contents used on the About, Support, and Privacy pages
+ * 
+ * Handles opening/closing the mobile slide-in menu, 
+ * menu-item clicks, and style changes
+ * 
+ */
+
 import { safeQuerySelector, safeQuerySelectorAll } from "../utils/dom";
 import { TRANSITION_DURATION, TAILWIND_LG_BREAKPOINT } from "../constants";
 
