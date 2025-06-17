@@ -12,7 +12,8 @@ export default defineConfig({
                 main: 'index.html',
                 about: 'about.html',
                 support: 'support.html',
-                legal: 'legal.html'
+                legal: 'legal.html',
+                privacy: 'privacy.html'
             }
         }
     }
