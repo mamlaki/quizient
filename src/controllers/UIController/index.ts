@@ -1,0 +1,467 @@
+// src/controlers/UIController/index.ts
+// ------------------------------------
+// Controller that manages everything UI related; will be broken up further later
+
+// Imports
+// utils & constants
+import { safeQuerySelector, safeQuerySelectorAll } from "../../utils/dom";
+import { TRANSITION_DURATION, FADE_IN_DELAY } from "../../constants";
+
+// Third-Party imports
+import DOMPurify from "dompurify";
+import { createElement, LoaderCircle } from "lucide";
+
+// Types
+export type Question = {
+  '@_type': 'multichoice' | 'truefalse' | 'shortanswer';
+  name: { text: string };
+  questiontext: {
+      '@_format': 'html';
+      text: {
+          '#cdata': string;
+      };
+  };
+  answer: any[];
+  usecase?: number;
+}
+
+
+export default class UIController {
+  private btn: HTMLButtonElement | null;
+  private log: HTMLElement | null;
+  private previewContainer: HTMLElement | null;
+  private preview: HTMLElement | null;
+  private searchBtn: HTMLButtonElement | null;
+  private clearSearchBtn: HTMLButtonElement | null;
+  private searchInput: HTMLInputElement | null;
+  private filterBtn: HTMLButtonElement | null;
+  private filterMenu: HTMLUListElement | null;
+  private currentFilter: string = 'filter-all';
+  private currentSort: string = 'sort-az';
+  
+  constructor() {
+      this.btn = safeQuerySelector<HTMLButtonElement>('#download-btn');
+      this.log = safeQuerySelector<HTMLElement>('#log');
+
+
+      this.previewContainer = safeQuerySelector<HTMLElement>('#preview-container');
+      this.preview = safeQuerySelector<HTMLElement>('#preview');
+
+      this.searchBtn = safeQuerySelector<HTMLButtonElement>('#search-btn');
+      this.clearSearchBtn = safeQuerySelector<HTMLButtonElement>('#clear-search-btn');
+      this.searchInput = safeQuerySelector<HTMLInputElement>('#search-input');
+
+      this.filterBtn = safeQuerySelector<HTMLButtonElement>('#filter-dropdown-btn');
+      this.filterMenu = safeQuerySelector<HTMLUListElement>('#filter-dropdown-menu');
+
+      this.initSearch();
+      this.initfilterMenu();
+  }
+
+  // FILTER
+  private initfilterMenu(): void {
+      if (!this.filterBtn || !this.filterMenu) return;
+
+      this.filterBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const open = this.filterMenu!.getAttribute('data-state') === 'open';
+          this.setDropdownState(!open);
+      });
+
+      this.filterMenu.addEventListener('click', (e) => {
+          const option = (e.target as HTMLElement).closest('.filter-option') as HTMLLIElement | null;
+          if (!option) return;
+
+          const action = option.dataset.action!;
+          if (action.startsWith('filter-')) this.currentFilter = action;
+          if (action.startsWith('sort-')) this.currentSort = action;
+
+          this.applyFilterAndSort();
+          this.filterPreview();
+          this.setDropdownState(false);
+      });
+
+      document.addEventListener('click', (e) => {
+          if (this.filterBtn && this.filterMenu && !this.filterBtn.contains(e.target as Node) && !this.filterMenu.contains(e.target as Node)) {
+              this.setDropdownState(false);
+          }
+      })
+  }
+
+  private setDropdownState(open: boolean): void {
+      if (!this.filterMenu || !this.filterBtn) return;
+      this.filterMenu.setAttribute('data-state', open ? 'open' : 'closed');
+      this.filterBtn.setAttribute('aria-expanded', String(open));
+  }
+
+  private applyFilterAndSort(): void {
+      const questions = Array.from(safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item'));
+      
+      // Filter
+      questions.forEach(question => {
+          const type = question.querySelector('span')?.textContent || ''; // type in badge
+
+          const show = 
+              this.currentFilter === 'filter-all' ||
+              (this.currentFilter === 'filter-multichoice' && type === 'multichoice') ||
+              (this.currentFilter === 'filter-truefalse' && type ==='truefalse') ||
+              (this.currentFilter === 'filter-shortanswer' && type === 'shortanswer')
+          question.classList.toggle('hidden', !show);
+      });
+
+      // Sort
+      const container = this.preview!;
+      const visibleCards = questions.filter(q => !q.classList.contains('hidden'));
+
+      visibleCards.sort((a, b) => {
+          const A = a.querySelector('h4')?.textContent?.toLowerCase() || '';
+          const B = b.querySelector('h4')?.textContent?.toLowerCase() || '';
+          if (this.currentSort === 'sort-az') return A.localeCompare(B);
+          return B.localeCompare(A);
+      });
+
+      // Rerender
+      visibleCards.forEach(question => container.appendChild(question));
+  }
+
+  // ----- ENDOF: FILTER -----
+
+  // SEARCH
+  private initSearch(): void {
+      if (!this.searchBtn || !this.searchInput || !this.clearSearchBtn) return;
+
+      this.searchBtn.addEventListener('click', () => this.toggleSearch());
+      this.searchInput.addEventListener('input', () =>  {
+          this.filterPreview();
+          this.toggleClearButton();
+      });
+
+      this.clearSearchBtn.addEventListener('click', () => {
+          if (!this.searchInput) return;
+          this.searchInput.value = '';
+          this.filterPreview();
+          this.toggleClearButton();
+      });
+
+      document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+              this.toggleSearch(true);
+              this.toggleClearButton();
+          }
+      });
+  }   
+
+  private toggleClearButton(): void {
+      if (!this.clearSearchBtn || !this.searchInput) return;
+
+      if (this.searchInput.value.trim()) {
+          this.clearSearchBtn.classList.remove('hidden', 'opacity-0');
+          this.clearSearchBtn.classList.add('opacity-100');
+      } else {
+          this.clearSearchBtn.classList.remove('opacity-100')
+          this.clearSearchBtn.classList.add('opacity-0');
+          setTimeout(() => {
+              this.clearSearchBtn?.classList.add('hidden');
+          }, TRANSITION_DURATION);
+      }
+  }
+
+  private toggleSearch(forceClose = false): void {
+      if (!this.searchInput) return;
+
+      const shouldClose = forceClose || !this.searchInput.classList.contains('w-0');
+      this.searchInput.classList.toggle('w-0', shouldClose);
+      this.searchInput.classList.toggle('opacity-0', shouldClose);
+      this.searchInput.classList.toggle('w-48', !shouldClose);
+      this.searchInput.classList.toggle('opacity-100', !shouldClose);
+
+      if (shouldClose) {
+          this.searchInput.value = '';
+          this.filterPreview();
+      } else {
+          this.searchInput.focus();
+          this.toggleClearButton();
+      }
+  }
+
+  private filterPreview(): void {
+      if (!this.searchInput) return;
+
+      const query = this.searchInput.value.trim().toLowerCase();
+      const questions = Array.from(safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item'));
+
+      questions.forEach(question => {
+          const type = question.querySelector('span')?.textContent || '';
+          const matchesFilter = this.currentFilter === 'filter-all' ||
+              (this.currentFilter === 'filter-multichoice' && type === 'multichoice') ||
+              (this.currentFilter === 'filter-truefalse' && type === 'truefalse') ||
+              (this.currentFilter === 'filter-shortanswer' && type === 'shortanswer');
+
+          const matchesSearch = !query || question.textContent?.toLowerCase().includes(query);
+          
+          question.classList.toggle('hidden', !(matchesFilter && matchesSearch));
+      });
+
+      this.updateActiveFiltersBadge();
+  }
+
+  private updateActiveFiltersBadge(): void {
+      const badgeContainer = safeQuerySelector<HTMLElement>('#active-filters');
+      if (!badgeContainer) return;
+      badgeContainer.innerHTML = '';
+
+
+      // Filter Bdage
+      if (this.currentFilter !== 'filter-all') {
+          const filterBadge = document.createElement('span');
+          filterBadge.className = 'inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700';
+
+          let filterLabel = '';
+          if (this.currentFilter === 'filter-multichoice') filterLabel = 'Multiple-choice';
+          else if (this.currentFilter === 'filter-truefalse') filterLabel = 'True / False';
+          else if (this.currentFilter === 'filter-shortanswer') filterLabel = 'Short answer';
+          filterBadge.innerHTML = `
+              <span>Filter: ${filterLabel}</span>
+              <button
+                  class="filter-clear-btn mt-0.3 ml-1 hover:text-amber-900 cursor-pointer" 
+                  aria-label="Clear ${filterLabel} filter"
+              >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+          `;
+          
+          const clearBtn = filterBadge.querySelector('.filter-clear-btn');
+          if (clearBtn) {
+              clearBtn.addEventListener('click', () => {
+                  this.currentFilter = 'filter-all';
+                  this.applyFilterAndSort();
+                  this.filterPreview();
+              });
+          }
+
+          badgeContainer.appendChild(filterBadge);
+      }
+
+      // Sort Badge
+      if  (this.currentSort !== 'sort-az') {
+          const sortBadge = document.createElement('span');
+          sortBadge.className = 'inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-sky-100 text-sky-700';
+          const sortLabel = this.currentSort === 'sort-az' ? 'A-Z' : 'Z-A';
+          
+          sortBadge.innerHTML = `
+              <span>Sort: ${sortLabel}</span>
+              <button
+                  class="sort-clear-btn mt-0.3 ml-1 hover:text-sky-900 cursor-pointer" aria-label="Clear ${sortLabel} sort"
+              >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+          `;
+
+          const clearBtn = sortBadge.querySelector('.sort-clear-btn');
+          if (clearBtn) {
+              clearBtn.addEventListener('click', () => {
+                  this.currentSort = 'sort-az';
+                  this.applyFilterAndSort();
+                  this.filterPreview();
+              });
+          }
+
+          badgeContainer.appendChild(sortBadge);
+      }
+  }
+  // ----- ENDOF: SEARCH -----
+
+
+  // DOWNLOAD BUTTON
+  showDownloadBtn(): void {
+      if (!this.btn) return;
+      
+      this.btn.classList.remove('hidden');
+      requestAnimationFrame(() => {
+          this.btn!.classList.remove('opacity-0');
+          this.btn!.classList.add('opacity-100');
+      }); 
+  }
+
+  hideDownloadBtn(): void {
+      if (!this.btn) return;
+
+      this.btn.classList.remove('opacity-100');
+      this.btn.classList.add('opacity-0');
+      setTimeout(() => {
+          this.btn!.classList.add('hidden');
+      }, TRANSITION_DURATION);
+  }
+  // ----- ENDOF: DOWNLOAD BUTTON -----
+
+
+  // LOG
+  showLog(): void {
+      this.log?.classList.remove('hidden');
+  }
+
+  hideLog(): void {
+      this.log?.classList.add('hidden');
+  }
+
+  clearLog(): void {
+      if (this.log) {
+          this.log.innerHTML = '';
+      }
+  }
+  // ----- ENDOF: LOG -----
+
+
+  // PREVIEW
+  showPreview(): void {
+      if (!this.previewContainer) return;
+
+      this.previewContainer?.classList.remove('hidden');
+      requestAnimationFrame(() => {
+          this.previewContainer?.classList.remove('opacity-0');
+          this.previewContainer?.classList.add('opacity-100');
+      });
+  }
+
+  hidePreview(): void {
+      if (!this.previewContainer) return;
+      this.previewContainer.classList.remove('opacity-100');
+      this.previewContainer.classList.add('opacity-0');
+      setTimeout(() => {
+          this.previewContainer?.classList.add('hidden');
+      }, TRANSITION_DURATION);
+      this.previewContainer?.classList.add('hidden');
+  }
+
+  clearPreview(): void {
+      if (this.preview) this.preview.innerHTML = '';
+  }
+
+  renderPreview(questions: Question[]): void {
+      if (!this.preview) return;
+      this.clearPreview();
+      if (questions.length > 0) {
+          this.showPreview();
+      } else {
+          this.hidePreview();
+          return;
+      }
+
+      questions.forEach((question, index) =>  {
+          const questionElement = this.createQuestionElement(question, index);
+          this.preview?.appendChild(questionElement);
+      });
+
+      this.applyFilterAndSort();
+      this.filterPreview();
+  }
+
+  private createQuestionElement(question: Question, index: number): HTMLDivElement {
+      // Header
+      const header = document.createElement('div');
+      header.className = 'flex justify-between items-center mb-2';
+
+      const title = document.createElement('h4');
+      title.className = 'font-bold text-gray-800 dark:text-gray-100';
+      title.textContent = `Q${index + 1}: ${question.name.text}`;
+
+      const typeBadge = document.createElement('span');
+      typeBadge.className = 'text-xs font-semibold uppercase px-2 py-1 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300';
+      typeBadge.textContent = question['@_type'];
+
+      header.appendChild(title);
+      header.appendChild(typeBadge);
+
+      // Questions
+      const questionWrapper = document.createElement('div');
+      questionWrapper.className = 'question-preview-item mb-4 p-4 rounded-md bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 ease-in-out';
+
+      const questionText = document.createElement('p');
+      questionText.className = 'mb-3 text-gray-700 dark:text-gray-300';
+      // DOMPurify to sanitize 
+      questionText.innerText = DOMPurify.sanitize(
+          question.questiontext.text['#cdata'], { ALLOWED_URI_REGEXP: /^(?!javascript:)/i }
+      );
+
+
+      // Answers
+      const answersWrapper = document.createElement('div');
+      answersWrapper.className = 'answers-preview pt-3';
+
+      const answersHeader = document.createElement('h5');
+      answersHeader.className = 'text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2';
+      answersHeader.textContent = 'Answers';
+      answersWrapper.appendChild(answersHeader);
+
+      const answerList = this.createAnswerList(question);
+      answersWrapper.appendChild(answerList);
+
+
+      questionWrapper.appendChild(header);
+      questionWrapper.appendChild(questionText);
+      questionWrapper.append(answersWrapper);
+
+      return questionWrapper;
+
+  }
+
+  private createAnswerList(question: Question): HTMLUListElement {
+      const list = document.createElement('ul');
+      const isMultichoice = question['@_type'] === 'multichoice';
+      const isTrueFalse = question['@_type'] === 'truefalse';
+
+      list.className = `${isMultichoice ? 'list-none' : 'list-disc'} pl-5 space-y-1 text-gray-600 dark:text-gray-400`;
+
+      question.answer.forEach((ans, index) => {
+          const listItem = document.createElement('li');
+          const isCorrect = ans['@_fraction'] === '100';
+          let text = ans.text;
+
+          if (isCorrect) {
+              if (isTrueFalse) {
+                  text = text.toUpperCase();
+                  listItem.className = `${text === 'TRUE' ? 'text-green-700 font-semibold' : 'text-rose-700 font-semibold'}`;
+              } else {
+                  listItem.className = 'text-green-700 font-semibold';
+              }
+          }
+          
+          if (isMultichoice) {
+              const prefix = String.fromCharCode(65 + index);
+              text = `${prefix}. ${text}`;
+          }
+
+          listItem.textContent = text;
+          list.appendChild(listItem);
+      });
+
+      return list;
+  }
+
+  // ----- ENDOF: PREVIEW -----
+
+  appendLog(message: string): HTMLDivElement | null {
+      if (!this.log) return null;
+      
+      this.showLog();
+      const entry = document.createElement('div');
+      entry.className = 'log-entry flex flex-row-reverse justify-end items-center gap-2 opacity-0 transition-opacity duration-500 mb-2';
+
+      setTimeout(() => {
+          entry.classList.add('opacity-100');
+      }, FADE_IN_DELAY);
+
+      const loadingIcon = createElement(LoaderCircle, { size: 18, class: 'log-loading-icon' });
+      loadingIcon.classList.add('animate-spin', 'text-sky-400');
+
+      const logText = document.createElement('span');
+      logText.textContent = message;
+
+      entry.appendChild(loadingIcon);
+      entry.append(logText);
+      this.log.appendChild(entry);
+
+      return entry;
+  }
+
+}
