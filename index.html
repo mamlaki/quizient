@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (() => {
+      const STORAGE_KEY = 'quizient-theme';
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      const isDark = saved === 'dark' || (saved === 'auto' || saved === null) && prefersDark;
+
+      if (isDark) document.documentElement.classList.add('dark');
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy"
@@ -18,7 +29,6 @@
   <meta http-equiv="Referrer-Policy" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
-  <script src="src/theme-boot.ts"></script>
   <link rel="stylesheet" href="/src/styles.css">
   <title>Quizient</title>
 </head>
