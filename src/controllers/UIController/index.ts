@@ -5,6 +5,8 @@
 // Imports
 // utils & constants
 import { safeQuerySelector } from "../../utils/dom";
+// Third-party
+import { createElement, Frown } from "lucide";
 
 // Sub-controllers
 import DownloadButton from "./DownloadButton";
@@ -13,6 +15,7 @@ import FilterMenu from "./FilterMenu";
 import LogDisplay from "./LogDisplay";
 import PreviewPane from "./PreviewPane";
 
+// Types
 import { Question } from "../../types/quiz";
 
 export default class UIController {
@@ -97,6 +100,26 @@ export default class UIController {
           
           card.classList.toggle('hidden', !(matchesFilter && matchesSearch));
       });
+
+      const root = this.previewPane.getRoot();
+      if (root) {
+        const hasVisible = cards.some(card => !card.classList.contains('hidden'));
+        let msg = root.querySelector<HTMLDivElement>('#no-results-msg');
+        let msgIcon = createElement(Frown, { size: 18, class: 'no-msg-icon mx-auto mb-2' });
+
+        if (!hasVisible) {
+            if (!msg) {
+                msg = document.createElement('div');
+                msg.id = 'no-results-msg';
+                msg.className = 'text-center py-12';
+                msg.textContent = 'No questions match your current search.'
+                msg.prepend(msgIcon);
+                root.appendChild(msg);
+            }
+        } else {
+            msg?.remove();
+        }
+      }
 
       this.updateActiveFiltersBadge();
   }
