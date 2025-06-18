@@ -9,6 +9,7 @@ import { TRANSITION_DURATION, FADE_IN_DELAY } from "../../constants";
 
 // Sub-controllers
 import DownloadButton from "./DownloadButton";
+import SearchBar from "./SearchBar";
 
 // Third-Party imports
 import DOMPurify from "dompurify";
@@ -31,18 +32,23 @@ export type Question = {
 
 export default class UIController {
   private downloadButton = new DownloadButton();
+  private searchBar = new SearchBar({
+    onQueryChange: (q) =>  {
+      this.searchQuery = q;
+      this.filterPreview();
+    }
+  });
 
   private log: HTMLElement | null;
   private previewContainer: HTMLElement | null;
   private preview: HTMLElement | null;
-  private searchBtn: HTMLButtonElement | null;
-  private clearSearchBtn: HTMLButtonElement | null;
-  private searchInput: HTMLInputElement | null;
+ 
   private filterBtn: HTMLButtonElement | null;
   private filterMenu: HTMLUListElement | null;
 
   private currentFilter: string = 'filter-all';
   private currentSort: string = 'sort-az';
+  private searchQuery = '';
   
   constructor() {
       this.log = safeQuerySelector<HTMLElement>('#log');
@@ -51,14 +57,11 @@ export default class UIController {
       this.previewContainer = safeQuerySelector<HTMLElement>('#preview-container');
       this.preview = safeQuerySelector<HTMLElement>('#preview');
 
-      this.searchBtn = safeQuerySelector<HTMLButtonElement>('#search-btn');
-      this.clearSearchBtn = safeQuerySelector<HTMLButtonElement>('#clear-search-btn');
-      this.searchInput = safeQuerySelector<HTMLInputElement>('#search-input');
+      
 
       this.filterBtn = safeQuerySelector<HTMLButtonElement>('#filter-dropdown-btn');
       this.filterMenu = safeQuerySelector<HTMLUListElement>('#filter-dropdown-menu');
 
-      this.initSearch();
       this.initfilterMenu();
   }
 
@@ -130,68 +133,10 @@ export default class UIController {
 
   // ----- ENDOF: FILTER -----
 
-  // SEARCH
-  private initSearch(): void {
-      if (!this.searchBtn || !this.searchInput || !this.clearSearchBtn) return;
-
-      this.searchBtn.addEventListener('click', () => this.toggleSearch());
-      this.searchInput.addEventListener('input', () =>  {
-          this.filterPreview();
-          this.toggleClearButton();
-      });
-
-      this.clearSearchBtn.addEventListener('click', () => {
-          if (!this.searchInput) return;
-          this.searchInput.value = '';
-          this.filterPreview();
-          this.toggleClearButton();
-      });
-
-      document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-              this.toggleSearch(true);
-              this.toggleClearButton();
-          }
-      });
-  }   
-
-  private toggleClearButton(): void {
-      if (!this.clearSearchBtn || !this.searchInput) return;
-
-      if (this.searchInput.value.trim()) {
-          this.clearSearchBtn.classList.remove('hidden', 'opacity-0');
-          this.clearSearchBtn.classList.add('opacity-100');
-      } else {
-          this.clearSearchBtn.classList.remove('opacity-100')
-          this.clearSearchBtn.classList.add('opacity-0');
-          setTimeout(() => {
-              this.clearSearchBtn?.classList.add('hidden');
-          }, TRANSITION_DURATION);
-      }
-  }
-
-  private toggleSearch(forceClose = false): void {
-      if (!this.searchInput) return;
-
-      const shouldClose = forceClose || !this.searchInput.classList.contains('w-0');
-      this.searchInput.classList.toggle('w-0', shouldClose);
-      this.searchInput.classList.toggle('opacity-0', shouldClose);
-      this.searchInput.classList.toggle('w-48', !shouldClose);
-      this.searchInput.classList.toggle('opacity-100', !shouldClose);
-
-      if (shouldClose) {
-          this.searchInput.value = '';
-          this.filterPreview();
-      } else {
-          this.searchInput.focus();
-          this.toggleClearButton();
-      }
-  }
 
   private filterPreview(): void {
-      if (!this.searchInput) return;
+      const query = this.searchQuery;
 
-      const query = this.searchInput.value.trim().toLowerCase();
       const questions = Array.from(safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item'));
 
       questions.forEach(question => {
