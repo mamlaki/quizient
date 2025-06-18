@@ -40,11 +40,21 @@ document.addEventListener('DOMContentLoaded', () => {
     onFP(fileProcessor, 'progress', e => logQueue.add(e.detail.msg));
     onFP(fileProcessor, 'error', e => logQueue.add(e.detail.msg, undefined, 'error'));
     onFP(fileProcessor, 'done', e => {
-        logQueue.add(`Generated ${e.detail.questions.length} questions`, () => {
-            ui.renderPreview(e.detail.questions);
-            ui.showDownloadBtn();
-        });
-        xmlCache = e.detail.xml;
+        const count = e.detail.questions.length;
+
+        if (count > 0) {
+            logQueue.add(`Generated ${e.detail.questions.length} questions`, () => {
+                ui.renderPreview(e.detail.questions);
+                ui.showDownloadBtn();
+            });
+            xmlCache = e.detail.xml;           
+        } else {
+            logQueue.add('No valid questions were genereted.', undefined, 'error');
+            ui.hideDownloadBtn();
+            ui.clearPreview();
+            ui.hidePreview();
+            xmlCache = '';
+        }
     });
 
     // DOM declarations
