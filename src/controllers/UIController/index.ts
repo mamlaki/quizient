@@ -11,6 +11,7 @@ import { TRANSITION_DURATION, FADE_IN_DELAY } from "../../constants";
 import DownloadButton from "./DownloadButton";
 import SearchBar from "./SearchBar";
 import FilterMenu from "./FilterMenu";
+import LogDisplay from "./LogDisplay";
 
 // Third-Party imports
 import DOMPurify from "dompurify";
@@ -43,7 +44,8 @@ export default class UIController {
 
   private filterMenu: FilterMenu;
 
-  private log: HTMLElement | null;
+  private logDisplay = new LogDisplay();  
+
   private previewContainer: HTMLElement | null;
   private preview: HTMLElement | null;
 
@@ -53,7 +55,6 @@ export default class UIController {
 
   
   constructor() {
-      this.log = safeQuerySelector<HTMLElement>('#log');
       this.previewContainer = safeQuerySelector<HTMLElement>('#preview-container');
       this.preview = safeQuerySelector<HTMLElement>('#preview');
 
@@ -205,18 +206,21 @@ export default class UIController {
 
   // LOG
   showLog(): void {
-      this.log?.classList.remove('hidden');
+      this.logDisplay.show();
   }
 
   hideLog(): void {
-      this.log?.classList.add('hidden');
+      this.logDisplay.hide();
   }
 
   clearLog(): void {
-      if (this.log) {
-          this.log.innerHTML = '';
-      }
+      this.logDisplay.clear();
   }
+
+  appendLog(message: string): HTMLDivElement | null {
+    return this.logDisplay.append(message);
+  }
+
   // ----- ENDOF: LOG -----
 
 
@@ -347,29 +351,5 @@ export default class UIController {
   }
 
   // ----- ENDOF: PREVIEW -----
-
-  appendLog(message: string): HTMLDivElement | null {
-      if (!this.log) return null;
-      
-      this.showLog();
-      const entry = document.createElement('div');
-      entry.className = 'log-entry flex flex-row-reverse justify-end items-center gap-2 opacity-0 transition-opacity duration-500 mb-2';
-
-      setTimeout(() => {
-          entry.classList.add('opacity-100');
-      }, FADE_IN_DELAY);
-
-      const loadingIcon = createElement(LoaderCircle, { size: 18, class: 'log-loading-icon' });
-      loadingIcon.classList.add('animate-spin', 'text-sky-400');
-
-      const logText = document.createElement('span');
-      logText.textContent = message;
-
-      entry.appendChild(loadingIcon);
-      entry.append(logText);
-      this.log.appendChild(entry);
-
-      return entry;
-  }
 
 }
