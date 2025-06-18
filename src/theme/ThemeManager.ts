@@ -4,7 +4,7 @@
 
 // Imports
 import { safeQuerySelector } from "../utils/dom";
-import { createElement, Sun, Moon, SunMoon } from "lucide";
+import { createElement, Sun, Moon, SunMoon, MoonStar } from "lucide";
 
 export default class ThemeManager {
   private STORAGE_KEY = 'quizient-theme';
@@ -68,24 +68,41 @@ export default class ThemeManager {
 
   private saveTheme(theme: string) { localStorage.setItem(this.STORAGE_KEY, theme); }
 
-  private getSavedTheme(): 'light' | 'dark' | 'auto' | null {
+  private getSavedTheme(): 'light' | 'dark' | 'black-out' | 'auto' | null {
       const theme = localStorage.getItem(this.STORAGE_KEY);
-      if (theme === 'light' || theme === 'dark' || theme === 'auto' || theme === null) {
+      if (theme === 'light' || theme === 'dark' || theme === 'black-out' || theme === 'auto' || theme === null) {
           return theme;
       } 
       return null;
   }
 
-  private applyTheme(mode: 'light' | 'dark' | 'auto') {
-      const isDark = mode === 'dark' || (mode === 'auto' && this.prefersDark.matches);
-      document.documentElement.classList.toggle('dark', isDark);
+  private applyTheme(mode: 'light' | 'dark' | 'black-out' | 'auto') {
+        document.documentElement.classList.remove('dark', 'black-out');
+
+        switch(mode) {
+            case 'light':
+                break;
+            case 'dark':
+                document.documentElement.classList.add('dark');
+                break;
+            case 'black-out':
+                document.documentElement.classList.add('dark', 'black-out');
+                break;
+            case 'auto':
+                if (this.prefersDark.matches) document.documentElement.classList.add('dark');
+        }
+
       this.setThemeIcon(mode);
   }
 
-  private setThemeIcon(mode: 'light' | 'dark' | 'auto') {
+  private setThemeIcon(mode: 'light' | 'dark' | 'black-out' | 'auto') {
       if (!this.themeIcon) return;
       this.themeIcon.innerHTML = '';
-      const icon = mode === 'light' ? createElement(Sun, { size: 18 }) : mode === 'dark' ? createElement(Moon, { size: 18 }) : createElement(SunMoon, { size: 18 });
+      const icon = 
+        mode === 'light' ? createElement(Sun, { size: 18 }) :
+        mode === 'dark' ? createElement(Moon, { size: 18 }) :
+        mode === 'black-out' ? createElement(MoonStar, { size: 18 }) :
+        createElement(SunMoon, { size: 18 });
       this.themeIcon.appendChild(icon);
   }
 }

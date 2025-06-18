@@ -10,6 +10,9 @@
 /* Dark Mode */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Blackout */
+@custom-variant black-out (&:where(.black-out, .black-out * ));
+
 /* Font Sizes */
 @layer base {
     body { @apply text-base md:text-lg lg:text-xl; }
