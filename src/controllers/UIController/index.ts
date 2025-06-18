@@ -10,6 +10,7 @@ import { TRANSITION_DURATION, FADE_IN_DELAY } from "../../constants";
 // Sub-controllers
 import DownloadButton from "./DownloadButton";
 import SearchBar from "./SearchBar";
+import FilterMenu from "./FilterMenu";
 
 // Third-Party imports
 import DOMPurify from "dompurify";
@@ -32,6 +33,7 @@ export type Question = {
 
 export default class UIController {
   private downloadButton = new DownloadButton();
+
   private searchBar = new SearchBar({
     onQueryChange: (q) =>  {
       this.searchQuery = q;
@@ -39,66 +41,37 @@ export default class UIController {
     }
   });
 
+  private filterMenu: FilterMenu;
+
   private log: HTMLElement | null;
   private previewContainer: HTMLElement | null;
   private preview: HTMLElement | null;
- 
-  private filterBtn: HTMLButtonElement | null;
-  private filterMenu: HTMLUListElement | null;
 
-  private currentFilter: string = 'filter-all';
-  private currentSort: string = 'sort-az';
+  private currentFilter = 'filter-all';
+  private currentSort = 'sort-az';
   private searchQuery = '';
+
   
   constructor() {
       this.log = safeQuerySelector<HTMLElement>('#log');
-
-
       this.previewContainer = safeQuerySelector<HTMLElement>('#preview-container');
       this.preview = safeQuerySelector<HTMLElement>('#preview');
 
-      
-
-      this.filterBtn = safeQuerySelector<HTMLButtonElement>('#filter-dropdown-btn');
-      this.filterMenu = safeQuerySelector<HTMLUListElement>('#filter-dropdown-menu');
-
-      this.initfilterMenu();
-  }
-
-  // FILTER
-  private initfilterMenu(): void {
-      if (!this.filterBtn || !this.filterMenu) return;
-
-      this.filterBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const open = this.filterMenu!.getAttribute('data-state') === 'open';
-          this.setDropdownState(!open);
-      });
-
-      this.filterMenu.addEventListener('click', (e) => {
-          const option = (e.target as HTMLElement).closest('.filter-option') as HTMLLIElement | null;
-          if (!option) return;
-
-          const action = option.dataset.action!;
-          if (action.startsWith('filter-')) this.currentFilter = action;
-          if (action.startsWith('sort-')) this.currentSort = action;
-
-          this.applyFilterAndSort();
-          this.filterPreview();
-          this.setDropdownState(false);
-      });
-
-      document.addEventListener('click', (e) => {
-          if (this.filterBtn && this.filterMenu && !this.filterBtn.contains(e.target as Node) && !this.filterMenu.contains(e.target as Node)) {
-              this.setDropdownState(false);
+      this.filterMenu = new FilterMenu(
+        {
+          onChange: (filter, sort) => {
+            this.currentFilter = filter;
+            this.currentSort = sort;
+            this.applyFilterAndSort();
+            this.filterPreview();
+            this.updateActiveFiltersBadge();
           }
-      })
-  }
-
-  private setDropdownState(open: boolean): void {
-      if (!this.filterMenu || !this.filterBtn) return;
-      this.filterMenu.setAttribute('data-state', open ? 'open' : 'closed');
-      this.filterBtn.setAttribute('aria-expanded', String(open));
+        },
+        {
+          filter: this.currentFilter,
+          sort: this.currentSort
+        }
+      );
   }
 
   private applyFilterAndSort(): void {
@@ -131,7 +104,6 @@ export default class UIController {
       visibleCards.forEach(question => container.appendChild(question));
   }
 
-  // ----- ENDOF: FILTER -----
 
 
   private filterPreview(): void {
@@ -183,6 +155,7 @@ export default class UIController {
           if (clearBtn) {
               clearBtn.addEventListener('click', () => {
                   this.currentFilter = 'filter-all';
+                  this.filterMenu.setFilter('filter-all');
                   this.applyFilterAndSort();
                   this.filterPreview();
               });
@@ -210,6 +183,7 @@ export default class UIController {
           if (clearBtn) {
               clearBtn.addEventListener('click', () => {
                   this.currentSort = 'sort-az';
+                  this.filterMenu.setSort('sort-az');
                   this.applyFilterAndSort();
                   this.filterPreview();
               });
