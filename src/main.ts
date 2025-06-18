@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let xmlCache = '';
 
     onFP(fileProcessor, 'progress', e => logQueue.add(e.detail.msg));
-    onFP(fileProcessor, 'error', e => logQueue.add(e.detail.msg));
+    onFP(fileProcessor, 'error', e => logQueue.add(e.detail.msg, undefined, 'error'));
     onFP(fileProcessor, 'done', e => {
         logQueue.add(`Generated ${e.detail.questions.length} questions`, () => {
             ui.renderPreview(e.detail.questions);
