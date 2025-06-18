@@ -1,19 +1,17 @@
 // -------- Imports --------
 // File processing
-import { XMLBuilder } from 'fast-xml-parser';
-import { read, utils } from 'xlsx';
+// src/services/FileProcessor.ts
+import FileProcessor, { addTypedListener as onFP} from './services/FileProcessor';
 
 // Web Components
 import './components/SiteHeader';
 import './components/SiteFooter';
-
 
 // src/controllers
 // Table of Contents Class
 import TableOfContents from './controllers/TableOfContents';
 // UI Controller Class
 import UIController from './controllers/UIController';
-import { Question } from './types/quiz';
 
 // src/services
 // LogQueue Class
@@ -26,253 +24,6 @@ import ThemeManager from './theme/ThemeManager';
 // src/utils - querySelectors
 import { safeQuerySelector, safeQuerySelectorAll } from './utils/dom';
 
-
-// Row type declaration
-type Row = {
-    Type: string;
-    Title: string;
-    Question: string;
-    OptionA?: string;
-    OptionB?: string;
-    OptionC?: string;
-    OptionD?: string;
-    Correct?: string;
-    UseCase?: string;
-};
-
-
-// ---------------- File Processor Class ----------------
-class FileProcessor {
-    private ui: UIController;
-    private logQueue: LogQueue;
-    private xmlString = ""; // Final XML output container
-    private questions: Question[] = [];
-
-    // File Limits
-    private readonly MAX_FILE_SIZE_MB = 5;
-    private readonly MAX_FILE_SIZE = this.MAX_FILE_SIZE_MB * 1024 * 1024;
-    private readonly MAX_TOTAL_ROWS = 5000;
-
-    // File types
-    private readonly supportedFileTypes: Record<string, string> = {
-        'text/csv': 'CSV',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
-        'application/vnd.ms-excel': 'XLS',
-        'application/vnd.oasis.opendocument.spreadsheet': 'ODS'
-    };
-
-    private readonly supportedExtensions = ['.csv', '.xlsx', '.xls', '.ods'];
-
-    constructor(ui: UIController, logQueue: LogQueue) {
-        this.ui = ui;
-        this.logQueue = logQueue;
-    }
-
-    async processFiles(files: File[]): Promise<void> {
-        this.clearAll();
-
-        const allQuestions: Question[] = [];
-        let totalRows = 0;
-        
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-
-            if (file.size > this.MAX_FILE_SIZE) {
-                this.logQueue.add(`${file.name} is ${(file.size / (1024 * 1024)).toFixed(1)}MiB - max allowed is ${this.MAX_FILE_SIZE_MB} MiB`, undefined, 'error');
-                continue;
-            }
-            
-            this.logQueue.add(`Loading (${i + 1}/${files.length}): ${file.name}`);
-            
-            const fileTypeInfo = this.validateFileType(file);
-            if (!fileTypeInfo.isValid) {
-                this.logQueue.add(fileTypeInfo.errorMessage!, undefined, 'error');
-                this.ui.hideDownloadBtn();
-                continue;
-            }
-
-            this.logQueue.add(`Processing ${fileTypeInfo.description} file: ${file.name}...`);
-
-            try {
-                const { questions, totalRows: rows } = await this.parseFile(file);
-                totalRows += rows;
-                if (totalRows > this.MAX_TOTAL_ROWS) {
-                    this.logQueue.add(`Row limit exceeded (${this.MAX_TOTAL_ROWS}).`, undefined, 'error');
-                    break;
-                }
-
-                allQuestions.push(...questions);
-            } catch (error) {
-                console.error(`Error processing ${file.name}: `, error);
-                this.logQueue.add(`Error processing ${file.name} (${fileTypeInfo.description}). Open the console for more information.`);
-            }
-        }
-
-        this.questions = allQuestions;
-        this.generateXML({ questions: allQuestions, totalRows }, files.map(f => f.name).join(', '));
-        return this.logQueue.getCompletionPromise();
-    }
-
-    getXMLString(): string {
-        return this.xmlString;
-    }
-
-    public clearAll(): void {
-        this.ui.clearLog();
-        this.ui.hideLog();
-        this.logQueue.clear();
-        this.ui.hideDownloadBtn();
-        this.ui.clearPreview();
-        this.ui.hidePreview();
-        this.xmlString = '';
-        this.questions = [];
-    }
-
-    private validateFileType(file: File): { isValid: boolean; description?: string; errorMessage?: string } {
-        const fileTypeDesc = this.supportedFileTypes[file.type];
-
-        if (fileTypeDesc) {
-            return { isValid: true, description: fileTypeDesc};
-        }
-
-        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-        if (this.supportedExtensions.includes(ext)) {
-            return { isValid: true, description: ext.toUpperCase().replace('.', '') };
-        }
-
-        return {
-            isValid: false,
-            errorMessage: `Unsupported file type: ${file.type}. Supported file types: Excel (.xlsx, .xls), .ods, or .csv.`
-        };
-    }
-
-    private async parseFile(file: File): Promise<{ questions: any[]; totalRows: number }> {
-        const buffer = await file.arrayBuffer();
-        const wb = read(buffer, { type: 'array' });
-
-        let allQuestions: Question[] = [];
-        let totalRowsProcessed = 0;
-
-        for (const sheetName of wb.SheetNames) {
-            const sheet = wb.Sheets[sheetName];
-            const rows = utils.sheet_to_json<Row>(sheet, { raw: false });
-            totalRowsProcessed += rows.length;
-
-            const questionsFromSheet = rows.map(row => this.rowToQuestion(row)).filter((question): question is Question => question !== null);
-
-            allQuestions = allQuestions.concat(questionsFromSheet);
-        }
-
-        return { questions: allQuestions, totalRows: totalRowsProcessed };
-    }
-
-    private generateXML(result: { questions: any[]; totalRows: number}, fileName: string): void {
-        const { questions: allQuestions, totalRows: totalRowsProcessed } = result;
-
-        // Validation checks
-        if (totalRowsProcessed === 0) { // No data in rows
-            this.logQueue.add(`No data found in any sheets of ${fileName}. Make sure sheets have headers and content.`, undefined, 'error');
-            this.ui.hideDownloadBtn();
-            return;
-        }
-
-        if (allQuestions.length === 0 && totalRowsProcessed > 0) { // No valid questions found within rows
-            this.logQueue.add(`No valid questions could be generated from ${fileName}.`, undefined, 'error');
-            this.ui.hideDownloadBtn();
-            return;
-        }
-
-        // Build XML
-        const builder = new XMLBuilder({
-            ignoreAttributes: false,
-            attributeNamePrefix: '@_',
-            format: true,
-            cdataPropName: '#cdata'
-        });
-
-        this.xmlString = builder.build({ quiz: {question: allQuestions } });
-
-        this.logQueue.add(`Generated ${allQuestions.length} questions`, () => {
-            if (totalRowsProcessed > allQuestions.length) {
-                this.logQueue.add(`(${totalRowsProcessed - allQuestions.length} rows skipped across all files).`);
-            } 
-            this.ui.renderPreview(this.questions);
-            this.ui.showDownloadBtn();
-        });
-    }
-
-    private rowToQuestion(row: Row) {
-        const sharedElements = {
-            name: { text: row.Title },
-            questiontext: { '@_format': 'html', text: { '#cdata': row.Question } }
-        };
-
-        const questionType = row.Type?.toLowerCase(); // what is the question type/does it exist?
-
-        if (questionType === 'truefalse') { // True/false question type
-            const isCorrectTrue = row.Correct?.toLowerCase() === 'true';
-            return {
-                ...sharedElements,
-                '@_type': 'truefalse',
-                answer: [
-                    {
-                        '@_fraction': isCorrectTrue? '100' : '0',
-                        '@_format': 'moodle_auto_format',
-                        text: 'true'
-                    },
-                    {
-                        '@_fraction': !isCorrectTrue? '100' : '0',
-                        '@_format': 'moodle_auto_format',
-                        text: 'false'
-                    }
-                ]
-            };
-        } else if (questionType === 'shortanswer') {
-             // Short answer question type
-            const useCase = row.UseCase === '1' ? 1 : 0;
-            // Allow several correct answers
-            const altKeys = Object.keys(row).filter(key => /^Correct\d+$/.test(key)); 
-            const alternativeAnswers = altKeys.map(key => (row as any)[key]?.trim()).filter(val => val);
-
-            const answers = alternativeAnswers.map(answer => ({
-                '@_fraction': '100',
-                '@_format': 'moodle_auto_format',
-                text: answer
-            }));
-
-            return {
-                ...sharedElements,
-                '@_type': 'shortanswer',
-                usecase: useCase,
-                answer: answers
-            };
-        } else {
-            // Default to multiplechoice 
-            // Build answers list
-            const answers = ['A', 'B', 'C', 'D'].flatMap(label => {
-                const text = (row as any)[`Option${label}`];
-                if (!text) {
-                    return [];
-                }
-                return [{
-                    '@_fraction': row.Correct?.toUpperCase().includes(label) ? '100' : '0',
-                    text
-                }]
-            });
-            
-            // Return a Moodle XML question object
-            return {
-                ...sharedElements,
-                '@_type': 'multichoice',
-                answer: answers
-            };
-        }
-    }
-
-}
-// ---------------- END OF: File Processor Class ----------------
-
-
 // ---------------- Main App Init ----------------
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize ccomponents using classes
@@ -280,7 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
     toc.init();
     const ui = new UIController(); // UI Controller class instance
     const logQueue = new LogQueue(ui); // Log queue class instance
-    const fileProcessor = new FileProcessor(ui, logQueue);
+    const fileProcessor = new FileProcessor();
+    let xmlCache = '';
+
+    onFP(fileProcessor, 'progress', e => logQueue.add(e.detail.msg));
+    onFP(fileProcessor, 'error', e => logQueue.add(e.detail.msg));
+    onFP(fileProcessor, 'done', e => {
+        logQueue.add(`Generated ${e.detail.questions.length} questions`, () => {
+            ui.renderPreview(e.detail.questions);
+            ui.showDownloadBtn();
+        });
+        xmlCache = e.detail.xml;
+    });
 
     // DOM declarations
     const $file = safeQuerySelector<HTMLInputElement>('#file-input');
@@ -388,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     if ($file && $dropZone && $btn && $convertBtn && $clearFilesBtn && $fileList) {
         // -------- When a user adds a file --------
         $file.addEventListener('change', () => {
@@ -422,7 +183,11 @@ document.addEventListener('DOMContentLoaded', () => {
         $clearFilesBtn.addEventListener('click', () => {
             selectedFiles.length = 0;
             refreshFileList();
-            fileProcessor.clearAll();
+            ui.clearLog();
+            ui.hideLog();
+            ui.hideDownloadBtn();
+            ui.clearPreview();
+            ui.hidePreview();
         });
 
         $fileList.addEventListener('click', (e) => {
@@ -441,13 +206,12 @@ document.addEventListener('DOMContentLoaded', () => {
             fileProcessor.processFiles([...selectedFiles]).then(() => {
                 $convertBtn.disabled = false; 
                 $convertBtn.textContent = 'Convert';
-                ui.showDownloadBtn();
             });
         });
 
         // -------- Download button --------
         $btn.addEventListener('click', () => {
-            const blob = new Blob([fileProcessor.getXMLString()], { type: 'text/xml' }); // create blob 
+            const blob = new Blob([xmlCache], { type: 'text/xml' }); // create blob 
             const url = URL.createObjectURL(blob); // temp blob url
         
             // Create hidden link that is auto clicked which downloads the file}
