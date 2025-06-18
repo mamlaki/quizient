@@ -65,12 +65,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const $templateDropdown = safeQuerySelector<HTMLDivElement>('#template-dropdown');
 
     const selectedFiles: File[] = [];
+    let hasConverted = false;
     const $fileList = safeQuerySelector<HTMLElement>('#file-list');
     const $fileActions = safeQuerySelector<HTMLElement>('#file-actions');
     const $clearFilesBtn = safeQuerySelector<HTMLButtonElement>('#clear-files-btn');
     const $convertBtn = safeQuerySelector<HTMLButtonElement>('#convert-btn');
 
     new ThemeManager();
+
+
+    const clearAppState = () => {
+        ui.clearLog();
+        ui.hideLog();
+        ui.hideDownloadBtn();
+        ui.clearPreview();
+        ui.hidePreview();
+    }
 
     const refreshFileList = () => {
         if (!$fileList || !$fileActions) return;
@@ -187,11 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
         $clearFilesBtn.addEventListener('click', () => {
             selectedFiles.length = 0;
             refreshFileList();
-            ui.clearLog();
-            ui.hideLog();
-            ui.hideDownloadBtn();
-            ui.clearPreview();
-            ui.hidePreview();
+            clearAppState();
+            hasConverted = false;
         });
 
         $fileList.addEventListener('click', (e) => {
@@ -200,11 +207,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const i = Number(btn.getAttribute('data-i'));
             selectedFiles.splice(i, 1);
             refreshFileList();
+
+            if (selectedFiles.length === 0 && hasConverted) {
+                clearAppState();
+                hasConverted = false;
+            }
         });
 
         // -------- Convert button --------
         $convertBtn?.addEventListener('click', () => {
             if (!selectedFiles.length) return;
+            hasConverted = true;
             $convertBtn.disabled = true; 
             $convertBtn.textContent = 'Converting...';
             fileProcessor.processFiles([...selectedFiles]).then(() => {
