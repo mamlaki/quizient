@@ -27,6 +27,7 @@ export default class TableOfContents {
   init(): void {
       if (!this.pageNav || !this.tocToggle || !this.tocClose) return;
       this.setupEventListeners();
+      this.setScrollPadding();
   }
 
   private setupEventListeners(): void {
@@ -109,5 +110,30 @@ export default class TableOfContents {
       overlay.addEventListener('click', this.closeToc.bind(this));
       document.body.appendChild(overlay);
       return overlay;
+  }
+
+  // To account for the header
+  private setScrollPadding(): void {
+    const ready = () => {
+        const header = document.querySelector<HTMLElement>('#main-header');
+        if (!header) {
+            requestAnimationFrame(ready);
+            return;
+        }
+
+        const apply = () => {
+            const offset = header.getBoundingClientRect().height + 16;
+            document.documentElement.style.scrollPaddingTop = `${offset}px`;
+            document.documentElement.style.setProperty('--toc-scroll-offset', `${offset}px`);
+        };
+
+        apply();
+        window.addEventListener('resize', apply);
+
+        const observer = new MutationObserver(apply);
+        observer.observe(header, { attributes: true, attributeFilter: ['class'] });
+    };
+
+    ready();
   }
 }

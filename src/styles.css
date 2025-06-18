@@ -15,6 +15,9 @@
     body { @apply text-base md:text-lg lg:text-xl; }
     h2 { @apply text-3xl md:text-4xl lg:text-5xl; }
     h3 { @apply text-xl md:text-2xl lg:text-3xl; }
+    [id] {
+        scroll-margin-top: var(--toc-scroll-offset, 6rem);
+    }
 }
 
 @layer components {
