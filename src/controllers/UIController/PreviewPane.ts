@@ -10,18 +10,7 @@ import { TRANSITION_DURATION } from "../../constants";
 import DOMPurify from 'dompurify';
 
 // Types
-export type Question = {
-  '@_type': 'multichoice' | 'truefalse' | 'shortanswer';
-  name: { text: string };
-  questiontext: {
-      '@_format': 'html';
-      text: {
-          '#cdata': string;
-      };
-  };
-  answer: any[];
-  usecase?: number;
-}
+import type { Question } from "../../types/quiz";
 
 export default class PreviewPane {
   private container: HTMLElement | null;

@@ -13,7 +13,7 @@ import './components/SiteFooter';
 import TableOfContents from './controllers/TableOfContents';
 // UI Controller Class
 import UIController from './controllers/UIController';
-import { Question } from './controllers/UIController/PreviewPane';
+import { Question } from './types/quiz';
 
 // src/services
 // LogQueue Class

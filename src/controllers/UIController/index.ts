@@ -13,7 +13,7 @@ import FilterMenu from "./FilterMenu";
 import LogDisplay from "./LogDisplay";
 import PreviewPane from "./PreviewPane";
 
-import type { Question } from "./PreviewPane";
+import { Question } from "../../types/quiz";
 
 export default class UIController {
   private downloadButton = new DownloadButton();
@@ -80,8 +80,6 @@ export default class UIController {
       // Rerender
       visibleCards.forEach(question => container?.appendChild(question));
   }
-
-
 
   private filterPreview(): void {
       const query = this.searchQuery;
