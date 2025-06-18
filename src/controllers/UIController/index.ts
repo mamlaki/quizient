@@ -4,50 +4,29 @@
 
 // Imports
 // utils & constants
-import { safeQuerySelector, safeQuerySelectorAll } from "../../utils/dom";
-import { TRANSITION_DURATION, FADE_IN_DELAY } from "../../constants";
+import { safeQuerySelector } from "../../utils/dom";
 
 // Sub-controllers
 import DownloadButton from "./DownloadButton";
 import SearchBar from "./SearchBar";
 import FilterMenu from "./FilterMenu";
 import LogDisplay from "./LogDisplay";
+import PreviewPane from "./PreviewPane";
 
-// Third-Party imports
-import DOMPurify from "dompurify";
-import { createElement, LoaderCircle } from "lucide";
-
-// Types
-export type Question = {
-  '@_type': 'multichoice' | 'truefalse' | 'shortanswer';
-  name: { text: string };
-  questiontext: {
-      '@_format': 'html';
-      text: {
-          '#cdata': string;
-      };
-  };
-  answer: any[];
-  usecase?: number;
-}
-
+import type { Question } from "./PreviewPane";
 
 export default class UIController {
   private downloadButton = new DownloadButton();
-
   private searchBar = new SearchBar({
     onQueryChange: (q) =>  {
       this.searchQuery = q;
       this.filterPreview();
     }
   });
-
   private filterMenu: FilterMenu;
-
   private logDisplay = new LogDisplay();  
+  private previewPane = new PreviewPane();
 
-  private previewContainer: HTMLElement | null;
-  private preview: HTMLElement | null;
 
   private currentFilter = 'filter-all';
   private currentSort = 'sort-az';
@@ -55,9 +34,6 @@ export default class UIController {
 
   
   constructor() {
-      this.previewContainer = safeQuerySelector<HTMLElement>('#preview-container');
-      this.preview = safeQuerySelector<HTMLElement>('#preview');
-
       this.filterMenu = new FilterMenu(
         {
           onChange: (filter, sort) => {
@@ -76,23 +52,23 @@ export default class UIController {
   }
 
   private applyFilterAndSort(): void {
-      const questions = Array.from(safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item'));
+      const cards = this.previewPane.getCards();
       
       // Filter
-      questions.forEach(question => {
-          const type = question.querySelector('span')?.textContent || ''; // type in badge
+      cards.forEach(card => {
+          const type = card.querySelector('span')?.textContent || ''; // type in badge
 
           const show = 
               this.currentFilter === 'filter-all' ||
               (this.currentFilter === 'filter-multichoice' && type === 'multichoice') ||
               (this.currentFilter === 'filter-truefalse' && type ==='truefalse') ||
               (this.currentFilter === 'filter-shortanswer' && type === 'shortanswer')
-          question.classList.toggle('hidden', !show);
+          card.classList.toggle('hidden', !show);
       });
 
       // Sort
-      const container = this.preview!;
-      const visibleCards = questions.filter(q => !q.classList.contains('hidden'));
+      const container = this.previewPane.getRoot();
+      const visibleCards = cards.filter(card => !card.classList.contains('hidden'));
 
       visibleCards.sort((a, b) => {
           const A = a.querySelector('h4')?.textContent?.toLowerCase() || '';
@@ -102,7 +78,7 @@ export default class UIController {
       });
 
       // Rerender
-      visibleCards.forEach(question => container.appendChild(question));
+      visibleCards.forEach(question => container?.appendChild(question));
   }
 
 
@@ -110,18 +86,18 @@ export default class UIController {
   private filterPreview(): void {
       const query = this.searchQuery;
 
-      const questions = Array.from(safeQuerySelectorAll<HTMLDivElement>('#preview .question-preview-item'));
+      const cards = this.previewPane.getCards();
 
-      questions.forEach(question => {
-          const type = question.querySelector('span')?.textContent || '';
+      cards.forEach(card => {
+          const type = card.querySelector('span')?.textContent || '';
           const matchesFilter = this.currentFilter === 'filter-all' ||
               (this.currentFilter === 'filter-multichoice' && type === 'multichoice') ||
               (this.currentFilter === 'filter-truefalse' && type === 'truefalse') ||
               (this.currentFilter === 'filter-shortanswer' && type === 'shortanswer');
 
-          const matchesSearch = !query || question.textContent?.toLowerCase().includes(query);
+          const matchesSearch = !query || card.textContent?.toLowerCase().includes(query);
           
-          question.classList.toggle('hidden', !(matchesFilter && matchesSearch));
+          card.classList.toggle('hidden', !(matchesFilter && matchesSearch));
       });
 
       this.updateActiveFiltersBadge();
@@ -193,8 +169,8 @@ export default class UIController {
           badgeContainer.appendChild(sortBadge);
       }
   }
-  // ----- ENDOF: SEARCH -----
-
+  
+  // DOWNLOAD BTN
   showDownloadBtn(): void {
     this.downloadButton.show();
   }
@@ -221,135 +197,23 @@ export default class UIController {
     return this.logDisplay.append(message);
   }
 
-  // ----- ENDOF: LOG -----
-
-
   // PREVIEW
   showPreview(): void {
-      if (!this.previewContainer) return;
-
-      this.previewContainer?.classList.remove('hidden');
-      requestAnimationFrame(() => {
-          this.previewContainer?.classList.remove('opacity-0');
-          this.previewContainer?.classList.add('opacity-100');
-      });
+      this.previewPane.show();
   }
 
   hidePreview(): void {
-      if (!this.previewContainer) return;
-      this.previewContainer.classList.remove('opacity-100');
-      this.previewContainer.classList.add('opacity-0');
-      setTimeout(() => {
-          this.previewContainer?.classList.add('hidden');
-      }, TRANSITION_DURATION);
-      this.previewContainer?.classList.add('hidden');
+      this.previewPane.hide();
   }
 
   clearPreview(): void {
-      if (this.preview) this.preview.innerHTML = '';
+      this.previewPane.clear();
   }
 
   renderPreview(questions: Question[]): void {
-      if (!this.preview) return;
-      this.clearPreview();
-      if (questions.length > 0) {
-          this.showPreview();
-      } else {
-          this.hidePreview();
-          return;
-      }
-
-      questions.forEach((question, index) =>  {
-          const questionElement = this.createQuestionElement(question, index);
-          this.preview?.appendChild(questionElement);
-      });
+    this.previewPane.render(questions);
 
       this.applyFilterAndSort();
       this.filterPreview();
   }
-
-  private createQuestionElement(question: Question, index: number): HTMLDivElement {
-      // Header
-      const header = document.createElement('div');
-      header.className = 'flex justify-between items-center mb-2';
-
-      const title = document.createElement('h4');
-      title.className = 'font-bold text-gray-800 dark:text-gray-100';
-      title.textContent = `Q${index + 1}: ${question.name.text}`;
-
-      const typeBadge = document.createElement('span');
-      typeBadge.className = 'text-xs font-semibold uppercase px-2 py-1 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300';
-      typeBadge.textContent = question['@_type'];
-
-      header.appendChild(title);
-      header.appendChild(typeBadge);
-
-      // Questions
-      const questionWrapper = document.createElement('div');
-      questionWrapper.className = 'question-preview-item mb-4 p-4 rounded-md bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 ease-in-out';
-
-      const questionText = document.createElement('p');
-      questionText.className = 'mb-3 text-gray-700 dark:text-gray-300';
-      // DOMPurify to sanitize 
-      questionText.innerText = DOMPurify.sanitize(
-          question.questiontext.text['#cdata'], { ALLOWED_URI_REGEXP: /^(?!javascript:)/i }
-      );
-
-
-      // Answers
-      const answersWrapper = document.createElement('div');
-      answersWrapper.className = 'answers-preview pt-3';
-
-      const answersHeader = document.createElement('h5');
-      answersHeader.className = 'text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2';
-      answersHeader.textContent = 'Answers';
-      answersWrapper.appendChild(answersHeader);
-
-      const answerList = this.createAnswerList(question);
-      answersWrapper.appendChild(answerList);
-
-
-      questionWrapper.appendChild(header);
-      questionWrapper.appendChild(questionText);
-      questionWrapper.append(answersWrapper);
-
-      return questionWrapper;
-
-  }
-
-  private createAnswerList(question: Question): HTMLUListElement {
-      const list = document.createElement('ul');
-      const isMultichoice = question['@_type'] === 'multichoice';
-      const isTrueFalse = question['@_type'] === 'truefalse';
-
-      list.className = `${isMultichoice ? 'list-none' : 'list-disc'} pl-5 space-y-1 text-gray-600 dark:text-gray-400`;
-
-      question.answer.forEach((ans, index) => {
-          const listItem = document.createElement('li');
-          const isCorrect = ans['@_fraction'] === '100';
-          let text = ans.text;
-
-          if (isCorrect) {
-              if (isTrueFalse) {
-                  text = text.toUpperCase();
-                  listItem.className = `${text === 'TRUE' ? 'text-green-700 font-semibold' : 'text-rose-700 font-semibold'}`;
-              } else {
-                  listItem.className = 'text-green-700 font-semibold';
-              }
-          }
-          
-          if (isMultichoice) {
-              const prefix = String.fromCharCode(65 + index);
-              text = `${prefix}. ${text}`;
-          }
-
-          listItem.textContent = text;
-          list.appendChild(listItem);
-      });
-
-      return list;
-  }
-
-  // ----- ENDOF: PREVIEW -----
-
 }

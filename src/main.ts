@@ -13,9 +13,7 @@ import './components/SiteFooter';
 import TableOfContents from './controllers/TableOfContents';
 // UI Controller Class
 import UIController from './controllers/UIController';
-// UI Controller Types
-import { Question } from './controllers/UIController';
-
+import { Question } from './controllers/UIController/PreviewPane';
 
 // src/services
 // LogQueue Class
