@@ -9,7 +9,11 @@
 
       const isDark = saved === 'dark' || (saved === 'auto' || saved === null) && prefersDark;
 
-      if (isDark) document.documentElement.classList.add('dark');
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else if (saved === 'black-out') {
+        document.documentElement.classList.add('black-out')
+      }
     })();
   </script>
   <meta charset="UTF-8">
@@ -30,10 +34,10 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
   <title>Privacy Policy | Quizient</title>
-  <script type="module" crossorigin src="/quizient/assets/main-dprx9fwe.js"></script>
-  <link rel="stylesheet" crossorigin href="/quizient/assets/main-CgTnhILt.css">
+  <script type="module" crossorigin src="/quizient/assets/main-D9D5UMe3.js"></script>
+  <link rel="stylesheet" crossorigin href="/quizient/assets/main-B95JtlZq.css">
 </head>
-<body class="p-8 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+<body class="p-8 text-gray-800 dark:bg-gray-900 dark:text-gray-100 black-out:bg-black black-out:text-white">
   <site-header>
     <div class="min-h-70 max-w-lg"></div>
   </site-header>
